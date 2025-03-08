@@ -8,6 +8,13 @@ html {
   }
 }
 
+:root {
+    --primary-color: #FFFFFF;
+    --secondary-color: #2D3848;
+    --accent-color: #F15C5A;
+    --addicional-color: #E5E7EB;
+}
+
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
@@ -18,7 +25,10 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+    font-family: 'Proxima Nova', Arial, Helvetica, sans-serif;
+    margin-bottom: 60px;
+    color: var(--primary-color);
+    padding-top: 56px
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -28,4 +38,45 @@ body {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
+}
+
+.container-fluid {
+    padding: 0 !important;
+}
+
+.navbar .navbar-brand,
+.navbar .nav-link {
+    color: var(--primary-color) !important;
+}
+
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+    background-color: var(--secondary-color) !important;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding-left: 10px;
+}
+
+.logo {
+    max-width: 20px;
+    height: auto;
+}
+
+.company-name {
+    display: flex;
+    gap: 1px;
+    align-items: center;
+}
+
+.main-letter {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--accent-color);
 }
