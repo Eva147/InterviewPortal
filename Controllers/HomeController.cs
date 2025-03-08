@@ -1,9 +1,4 @@
-using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using InterviewPortal.Models;
-
 namespace InterviewPortal.Controllers;
-
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;

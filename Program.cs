@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using InterviewPortal.DbContexts;
 namespace InterviewPortal
 {
     public class Program
@@ -5,6 +8,11 @@ namespace InterviewPortal
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var connectionString = builder.Configuration.GetConnectionString("InterviewPortalDbContextConnection") ?? throw new InvalidOperationException("Connection string 'InterviewPortalDbContextConnection' not found.");;
+
+            builder.Services.AddDbContext<InterviewPortalDbContext>(options => options.UseSqlServer(connectionString));
+
+            builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<InterviewPortalDbContext>();
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
@@ -23,12 +31,15 @@ namespace InterviewPortal
             app.UseRouting();
 
             app.UseAuthorization();
+            app.UseAuthentication();
 
             app.MapStaticAssets();
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}")
                 .WithStaticAssets();
+
+            app.MapRazorPages();
 
             app.Run();
         }
