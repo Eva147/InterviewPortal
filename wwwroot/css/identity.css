@@ -1,0 +1,98 @@
+﻿.auth-btn {
+    background-color: var(--accent-color);
+    color: var(--primary-color);
+    border-radius: 20px;
+    padding: 6px 20px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 2px solid var(--accent-color);
+}
+
+.auth-btn:hover {
+    background-color: #d84a48;
+    color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#logout.btn-link {
+    color: var(--primary-color);
+    padding: 8px 20px;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+}
+
+#logout.btn-link:hover {
+    color: var(--accent-color);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.form-check-label {
+    color: var(--secondary-color);
+    font-weight: 500;
+    padding-left: 5px;
+}
+
+.form-check-input {
+    margin-right: 5px;
+}
+
+.auth-btn:focus,
+.auth-btn:active,
+.auth-btn:active:focus {
+    box-shadow: none !important;
+    outline: none !important;
+    background-color: #d84a48;
+    transform: translateY(1px);
+    border-color: #d84a48;
+}
+
+.form-control,
+.form-check-input {
+    border: 1px solid var(--secondary-color);
+    border-radius: 8px;
+}
+
+.form-control:focus, .form-check-input:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.form-control:focus,
+.form-check-input:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 0.2rem rgba(45, 56, 72, 0.25);
+}
+
+.form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    margin-top: 0.25em;
+    background-color: var(--primary-color);
+    border: 2px solid var(--secondary-color);
+}
+
+.form-check-input:checked {
+    background-color: var(--secondary-color);
+}
+
+.login-form-links {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-form-links a,
+#account p a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.login-form-links a:hover,
+#account p a:hover {
+    color: black;
+    text-decoration: none;
+}

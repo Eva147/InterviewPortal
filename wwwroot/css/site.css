@@ -26,9 +26,22 @@ html {
 
 body {
     font-family: 'Proxima Nova', Arial, Helvetica, sans-serif;
-    margin-bottom: 60px;
-    color: var(--primary-color);
-    padding-top: 56px
+    color: var(--secondary-color);
+    padding-top: 60px;
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+li {
+    list-style-type: none;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -42,6 +55,7 @@ body {
 
 .container-fluid {
     padding: 0 !important;
+    flex: 1 0 auto;
 }
 
 .navbar .navbar-brand,
@@ -55,6 +69,7 @@ body {
     width: 100%;
     z-index: 100;
     background-color: var(--secondary-color) !important;
+    padding: 10px 5px;
 }
 
 .navbar-brand {
@@ -79,4 +94,25 @@ body {
     font-size: 1.3rem;
     font-weight: 700;
     color: var(--accent-color);
+}
+
+.main-title,
+.main-text {
+    color: var(--primary-color);
+}
+
+.footer_container {
+    flex-shrink: 0;
+    margin-top: 20px;
+    padding: 30px;
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.privacy-policy {
+    color: var(--secondary-color);
+    padding: 0 10px;
 }

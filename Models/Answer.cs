@@ -5,7 +5,7 @@ public class Answer
     public string UserAnswer { get; set; } = String.Empty;
     public bool IsCorrect { get; set; }
     public DateTime AnsweredAt { get; set; }
-    public int UserId { get; set; }
+    public string UserId { get; set; } = string.Empty;
 
     public User? User { get; set; }
 

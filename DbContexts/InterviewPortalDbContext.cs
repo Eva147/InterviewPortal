@@ -27,5 +27,17 @@ public class InterviewPortalDbContext : IdentityDbContext<User>
             .HasOne(pt => pt.Topic)
             .WithMany(t => t.PositionTopics)
             .HasForeignKey(pt => pt.TopicId);
+
+        modelBuilder.Entity<Answer>()
+            .HasOne(a => a.User)
+            .WithMany(u => u.Answers)
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Result>()
+            .HasOne(r => r.User)
+            .WithMany(u => u.Results)
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
