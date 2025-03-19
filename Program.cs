@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using InterviewPortal.DbContexts;
-using InterviewPortal.Data;
+using InterviewPortal.Services;
 namespace InterviewPortal
 {
     public class Program
@@ -21,15 +21,12 @@ namespace InterviewPortal
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
+            // Register the DatabaseInit
+            builder.Services.AddHostedService<DatabaseInit>();
+
             builder.Services.AddRazorPages();
 
             var app = builder.Build();
-            using (var scope = app.Services.CreateScope())
-            {
-                var serviceProvider = scope.ServiceProvider;
-                SeedData.Initialize(serviceProvider).Wait(); // Call async method synchronously
-            }
-            // Call your seeding method asynchronously
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
