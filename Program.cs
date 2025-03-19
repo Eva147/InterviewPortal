@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using InterviewPortal.DbContexts;
+using InterviewPortal.Services;
 namespace InterviewPortal
 {
     public class Program
@@ -16,6 +17,9 @@ namespace InterviewPortal
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            // Register the DatabaseInit
+            builder.Services.AddHostedService<DatabaseInit>();
 
             var app = builder.Build();
 
