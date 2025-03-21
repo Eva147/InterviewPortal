@@ -14,9 +14,9 @@ namespace InterviewPortal
             builder.Services.AddDbContext<InterviewPortalDbContext>(options => options.UseSqlServer(connectionString));
 
             builder.Services.AddIdentity<User, IdentityRole>(options =>
-    options.SignIn.RequireConfirmedAccount = false)
-    .AddEntityFrameworkStores<InterviewPortalDbContext>()
-    .AddDefaultTokenProviders();
+            options.SignIn.RequireConfirmedAccount = false)
+            .AddEntityFrameworkStores<InterviewPortalDbContext>()
+            .AddDefaultTokenProviders();
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();

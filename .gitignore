@@ -9,9 +9,6 @@ cat > .gitignore << 'EOL'
 *.sln.docstates
 .vscode/
 
-# Vendor libraries
-wwwroot/lib/
-
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
