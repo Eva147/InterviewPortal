@@ -13,13 +13,18 @@ namespace InterviewPortal
 
             builder.Services.AddDbContext<InterviewPortalDbContext>(options => options.UseSqlServer(connectionString));
 
-            builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<InterviewPortalDbContext>();
+            builder.Services.AddIdentity<User, IdentityRole>(options =>
+            options.SignIn.RequireConfirmedAccount = false)
+            .AddEntityFrameworkStores<InterviewPortalDbContext>()
+            .AddDefaultTokenProviders();
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
             // Register the DatabaseInit
             builder.Services.AddHostedService<DatabaseInit>();
+
+            builder.Services.AddRazorPages();
 
             var app = builder.Build();
 
@@ -34,8 +39,10 @@ namespace InterviewPortal
             app.UseHttpsRedirection();
             app.UseRouting();
 
-            app.UseAuthorization();
+            app.UseStaticFiles();
+
             app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapStaticAssets();
             app.MapControllerRoute(

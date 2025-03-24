@@ -4,9 +4,10 @@ namespace InterviewPortal.Components
 {
     public class NavbarViewComponent : ViewComponent
     {
-        public IViewComponentResult Invoke()
+        public Task<IViewComponentResult> InvokeAsync()
         {
-            return View();
+            return Task.FromResult((IViewComponentResult)View("Default"));
         }
+
     }
 }

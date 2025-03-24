@@ -1,0 +1,221 @@
+﻿@{
+    var users = ViewData["Users"] as List<InterviewPortal.Models.User>;
+    var roles = ViewData["Roles"] as List<string>;
+    var search = ViewData["Search"] as string;
+    var roleFilter = ViewData["RoleFilter"] as string;
+    var sortOrder = ViewData["SortOrder"] as string;
+}
+@inject UserManager<InterviewPortal.Models.User> _userManager
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Users</h1>
+
+        <!-- Search & Filter -->
+        <form class="filter-form" asp-action="Index" method="get">
+            <input type="text" name="search" value="@search" placeholder="Search by name..." />
+            <select name="roleFilter">
+                <option value="">All Roles</option>
+                @foreach (var role in roles)
+                {
+                    <option value="@role" selected="@(role == roleFilter ? "selected" : null)">@role</option>
+                }
+            </select>
+            <button type="submit">Search</button>
+        </form>
+
+        <!-- User Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th class="sortable-column">
+                        <a asp-action="Index" asp-route-sortOrder="@(sortOrder == "name_asc" ? "name_desc" : "name_asc")">
+                            Name @(sortOrder == "name_asc" ? "▲" : sortOrder == "name_desc" ? "▼" : "")
+                        </a>
+                    </th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (users != null && users.Any())
+                {
+                    @foreach (var user in users)
+                    {
+                        <tr>
+                            <td>@user.FirstName @user.LastName</td>
+                            <td>@user.Email</td>
+                            <td>
+                                @{
+                                    var userRoles = await _userManager.GetRolesAsync(user); 
+                                    var roleName = userRoles.Any() ? string.Join(", ", userRoles) : "No Role"; 
+                                }
+                                @roleName
+                            </td>
+                            <!-- TODO: Edit & Delete -->
+                            <td class="actions">
+                                <a href="/User/Edit/@user.Id" class="btn-edit">Edit</a>
+                                <a href="/User/Delete/@user.Id" class="btn-delete" onclick="return confirm('Are you sure?');">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="no-results">No users found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            padding-top: 40px; 
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+
+        h1 {
+            text-align: center;
+            color: #1c1b1b;
+        }
+
+        .filter-form {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+            .filter-form input, .filter-form select, .filter-form button {
+                padding: 10px;
+                margin: 0 10px;
+                border-radius: 10px;
+                border: 1px solid #ddd;
+            }
+
+            .filter-form button {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                cursor: pointer;
+            }
+
+                .filter-form button:hover {
+                    background-color: #45a049;
+                }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f9;
+            font-weight: bold;
+            color: #4b4b4b;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .sortable-column a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+            .sortable-column a:hover {
+                color: #007bff;
+            }
+
+        .actions a {
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .actions .btn-edit {
+            background-color: #28a745;
+        }
+
+        .actions .btn-delete {
+            background-color: #dc3545;
+        }
+
+        .actions .btn-edit:hover {
+            background-color: #218838;
+        }
+
+        .actions .btn-delete:hover {
+            background-color: #c82333;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+
+        &#64;media (max-width: 768px) {
+            .filter-form
+
+        {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-form input,
+        .filter-form select,
+        .filter-form button {
+            margin: 5px 0;
+            width: 100%;
+        }
+
+        table {
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 8px;
+        }
+
+        }
+    </style>
+</body>
+</html>
