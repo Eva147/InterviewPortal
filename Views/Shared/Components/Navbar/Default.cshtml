@@ -4,10 +4,10 @@
             <div class="company-name">
                 <span class="main-letter">i</span>Portal
             </div>
-            
+
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                aria-expanded="false" aria-label="Toggle navigation">
+        aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
@@ -19,6 +19,12 @@
                 {
                     <li class="nav-item">
                         <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="Index">Users</a>
+                    </li>
+                }
+                @if(User.IsInRole("Candidate"))
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="" asp-controller="Candidate" asp-action="Index">Interview</a>
                     </li>
                 }
                 <li class="nav-item">

@@ -1,0 +1,52 @@
+﻿@{
+    var interviewType = ViewData["InterviewType"] as string;
+    var isMock = interviewType == "mock";
+    var positionId = ViewData["PositionId"];
+
+    ViewData["Title"] = isMock ? "Mock Interview" : "Real Interview";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/candidate-dashboard.css" />
+    <link rel="stylesheet" href="~/css/interview.css" />
+}
+
+<div class="interview-container">
+    <h1>@(isMock ? "Mock Interview" : "Real Interview")</h1>
+
+    <div class="interview-info">
+
+        <div class="interview-description">
+            @if (isMock)
+            {
+                <p>This is a <strong>mock interview</strong> for practice purposes. Your results won't be stored and you can retake this test as many times as you want.</p>
+                <p>Use this opportunity to familiarize yourself with the interview format and practice your responses without any pressure.</p>
+            }
+            else
+            {
+                <p>This is a <span class="attentionText">real interview</span> for your job application. Your results will be stored and evaluated by our team.</p>
+                <p>Please note that you won't be able to redo this test once submitted, so make sure you're prepared and in a quiet environment.</p>
+            }
+        </div>
+    </div>
+
+    <div class="interview-instructions">
+        <h2>Interview Instructions</h2>
+        <ul>
+            <li>The interview consists of several questions related to the position</li>
+            <li>Read each question carefully before answering</li>
+            <li>Once you start, try to complete the interview in one sitting</li>
+            <li>Provide clear and concise answers to showcase your skills</li>
+        </ul>
+    </div>
+
+    <div class="start-button-container">
+        <a href="/Candidate/StartInterview/@positionId/@interviewType" class="start-button">
+            Start Interview
+        </a>
+    </div>
+
+    <div class="back-link">
+        <a href="/Candidate/ApplyPosition/@positionId">Back to interview selection</a>
+    </div>
+</div>

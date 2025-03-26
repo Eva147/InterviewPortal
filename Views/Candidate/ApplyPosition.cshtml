@@ -1,0 +1,27 @@
+﻿@section Styles {
+    <link rel="stylesheet" href="~/css/candidate-dashboard.css" />
+}
+
+@{
+    ViewData["Title"] = "Select Interview Type";
+}
+
+<div class="interview-type-container">
+    <h1>Choose the interview type</h1>
+
+    <div class="interview-options">
+        <a href="/Candidate/ApplyPosition/@ViewContext.RouteData.Values["id"]/mock" class="interview-button">
+            <div class="interview-type">Mock Interview</div>
+            <div class="interview-description">Practice interview with feedback</div>
+        </a>
+
+        <a href="/Candidate/ApplyPosition/@ViewContext.RouteData.Values["id"]/interview" class="interview-button">
+            <div class="interview-type">Real Interview</div>
+            <div class="interview-description">Official interview for your application</div>
+        </a>
+    </div>
+
+    <div class="back-link">
+        <a href="/Candidate">Back to positions</a>
+    </div>
+</div>
