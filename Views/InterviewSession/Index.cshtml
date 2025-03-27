@@ -1,0 +1,28 @@
+﻿@model InterviewPortal.Models.InterviewSession
+
+@{
+    ViewData["Title"] = "Interview Session";
+}
+
+<h2>Welcome to your Interview!</h2>
+<p>You are about to start an interview for the position of <strong>@Model.Position.Name</strong> on the topic of <strong>@Model.Topic.Name</strong>.</p>
+<p>Good luck!</p>
+
+<!-- Interview Questions and their Answers (Temporary) -->
+<div>
+    <h3>Interview Questions:</h3>
+    @foreach (var question in Model.Topic.Questions)
+    {
+        <div>
+            <p><strong>@question.QuestionText</strong></p>
+
+            <div>
+                <h4>Possible Answers:</h4>
+                @foreach (var answer in question.Answers)
+                {
+                    <p>@answer.AnswerText</p> 
+                }
+            </div>
+        </div>
+    }
+</div>
