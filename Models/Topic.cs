@@ -9,8 +9,8 @@ public class Topic
     
     [StringLength(500)]
     public string Description { get; set; } = string.Empty;
-
+    // do we need it here?
     public ICollection<PositionTopic> PositionTopics { get; set; } = new List<PositionTopic>();
-
+    // do we need it here?
     public ICollection<Question> Questions { get; set; } = new List<Question>();
 }

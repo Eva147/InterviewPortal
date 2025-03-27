@@ -1,0 +1,144 @@
+﻿/* Interview Start Page Styles */
+.interview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    text-align: center;
+}
+
+.attentionText {
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
+    .interview-container h1 {
+        font-size: 28px;
+        margin-bottom: 30px;
+        color: var(--secondary-color);
+    }
+
+.interview-info {
+    background-color: #f8f9fa;
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 30px;
+    width: 100%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.interview-description {
+    text-align: left;
+    line-height: 1.6;
+}
+
+    .interview-description p {
+        margin-bottom: 15px;
+    }
+
+.interview-instructions {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 30px;
+    width: 100%;
+    text-align: left;
+}
+
+    .interview-instructions h2 {
+        font-size: 20px;
+        margin-bottom: 15px;
+        color: var(--secondary-color);
+    }
+
+    .interview-instructions ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .interview-instructions li {
+        position: relative;
+        padding-left: 25px;
+        margin-bottom: 12px;
+    }
+
+        .interview-instructions li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--accent-color);
+            font-size: 18px;
+            top: 0;
+        }
+
+.start-button-container {
+    margin: 30px 0;
+}
+
+.start-button {
+    background-color: var(--accent-color);
+    color: var(--primary-color);
+    border-radius: 20px;
+    padding: 12px 40px;
+    font-weight: 600;
+    font-size: 18px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+}
+
+    .start-button:hover {
+        background-color: #d84a48;
+        color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+    }
+
+    .start-button:focus,
+    .start-button:active,
+    .start-button:active:focus {
+        box-shadow: none !important;
+        outline: none !important;
+        background-color: #d84a48;
+        transform: translateY(1px);
+    }
+
+.back-link {
+    margin-top: 15px;
+}
+
+    .back-link a {
+        color: var(--secondary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+        .back-link a:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+
+/* Make responsive for smaller screens */
+@media (max-width: 768px) {
+    .interview-info,
+    .interview-instructions {
+        padding: 20px;
+    }
+
+    .interview-container h1 {
+        font-size: 24px;
+    }
+
+    .start-button {
+        width: 100%;
+    }
+}

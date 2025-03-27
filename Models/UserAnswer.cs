@@ -1,4 +1,6 @@
-﻿namespace InterviewPortal.Models;
+﻿using NuGet.Packaging.Signing;
+
+namespace InterviewPortal.Models;
 public class UserAnswer
 {
     public int Id { get; set; }
@@ -12,4 +14,6 @@ public class UserAnswer
 
     public int AnswerId { get; set; }
     public Answer Answer { get; set; } = null!;
+    // maybe we should add it?
+    public DateTime AnsweredAt { get; set; }
 }

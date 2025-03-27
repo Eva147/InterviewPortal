@@ -4,25 +4,49 @@
     ViewData["Title"] = "Interview Session";
 }
 
-<h2>Welcome to your Interview!</h2>
-<p>You are about to start an interview for the position of <strong>@Model.Position.Name</strong> on the topic of <strong>@Model.Topic.Name</strong>.</p>
-<p>Good luck!</p>
+@section Styles {
+    <link rel="stylesheet" href="~/css/candidate-dashboard.css" />
+    <link rel="stylesheet" href="~/css/interview.css" />
+}
 
-<!-- Interview Questions and their Answers (Temporary) -->
-<div>
-    <h3>Interview Questions:</h3>
-    @foreach (var question in Model.Topic.Questions)
-    {
-        <div>
-            <p><strong>@question.QuestionText</strong></p>
+<div class="interview-type-container">
+    <h2>Welcome to your Interview for the position of <strong>@Model.Position.Name</strong>!</h2>
+    <p>Good luck!</p>
 
-            <div>
-                <h4>Possible Answers:</h4>
-                @foreach (var answer in question.Answers)
-                {
-                    <p>@answer.AnswerText</p> 
-                }
-            </div>
+    <form id="interviewForm" method="post" asp-action="SubmitInterview" asp-controller="InterviewSession" asp-route-sessionId="@Model.Id">
+        <div class="interview-questions">
+            @{
+                int questionIndex = 0;
+            }
+            @foreach (var question in Model.Topic.Questions)
+            {
+                <div class="question-container">
+                    <h3 class="question-text">@(questionIndex + 1). @question.QuestionText</h3>
+
+                    <div class="answers-container">
+                        @foreach (var answer in question.Answers)
+                        {
+                            <div class="answer-option">
+                                <input type="radio"
+                                       id="answer_@answer.Id"
+                                       name="Answers[@questionIndex]"
+                                       value="@answer.Id"
+                                       required />
+                                <label for="answer_@answer.Id">@answer.AnswerText</label>
+                            </div>
+                        }
+                    </div>
+                </div>
+                questionIndex++;
+            }
         </div>
-    }
+
+        <div class="submit-container">
+            <button type="submit" class="interview-button">Submit Interview</button>
+        </div>
+    </form>
+
+    <div class="back-link">
+        <a href="javascript:history.back();">← Back to Instructions</a>
+    </div>
 </div>

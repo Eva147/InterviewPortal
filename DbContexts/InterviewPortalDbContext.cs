@@ -22,12 +22,14 @@ public class InterviewPortalDbContext : IdentityDbContext<User>
         modelBuilder.Entity<PositionTopic>()
             .HasOne(pt => pt.Position)
             .WithMany(p => p.PositionTopics)
-            .HasForeignKey(pt => pt.PositionId);
+            .HasForeignKey(pt => pt.PositionId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<PositionTopic>()
             .HasOne(pt => pt.Topic)
             .WithMany(t => t.PositionTopics)
-            .HasForeignKey(pt => pt.TopicId);
+            .HasForeignKey(pt => pt.TopicId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Result>()
             .HasOne(r => r.User)
@@ -45,6 +47,12 @@ public class InterviewPortalDbContext : IdentityDbContext<User>
             .HasOne(ua => ua.Question)
             .WithMany(q => q.UserAnswers)
             .HasForeignKey(ua => ua.QuestionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Question>()
+            .HasOne(q => q.Topic)
+            .WithMany(q => q.Questions)
+            .HasForeignKey(q => q.TopicId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Answer>()
