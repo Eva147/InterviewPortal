@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InterviewPortal.Migrations
 {
     [DbContext(typeof(InterviewPortalDbContext))]
-    [Migration("20250319133114_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250327044333_InitalCreate")]
+    partial class InitalCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,8 +33,10 @@ namespace InterviewPortal.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("AnsweredAt")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("AnswerText")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.Property<bool>("IsCorrect")
                         .HasColumnType("bit");
@@ -42,9 +44,38 @@ namespace InterviewPortal.Migrations
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
 
-                    b.Property<string>("UserAnswer")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("Answers");
+                });
+
+            modelBuilder.Entity("InterviewPortal.Models.InterviewSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DurationInSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsMock")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PositionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TopicId")
+                        .HasColumnType("int");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -52,11 +83,13 @@ namespace InterviewPortal.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("QuestionId");
+                    b.HasIndex("PositionId");
+
+                    b.HasIndex("TopicId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Answers");
+                    b.ToTable("InterviewSessions");
                 });
 
             modelBuilder.Entity("InterviewPortal.Models.Position", b =>
@@ -69,10 +102,8 @@ namespace InterviewPortal.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PassScore")
-                        .HasColumnType("int");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -102,19 +133,12 @@ namespace InterviewPortal.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CorrectAnswer")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("Difficulty")
                         .HasColumnType("int");
 
                     b.Property<string>("QuestionText")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Score")
-                        .HasColumnType("int");
 
                     b.Property<int>("TopicId")
                         .HasColumnType("int");
@@ -134,10 +158,14 @@ namespace InterviewPortal.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Feedback")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<int>("FinalScore")
                         .HasColumnType("int");
 
-                    b.Property<int>("PositionId")
+                    b.Property<int>("InterviewSessionId")
                         .HasColumnType("int");
 
                     b.Property<string>("UserId")
@@ -146,7 +174,7 @@ namespace InterviewPortal.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PositionId");
+                    b.HasIndex("InterviewSessionId");
 
                     b.HasIndex("UserId");
 
@@ -163,11 +191,13 @@ namespace InterviewPortal.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -245,6 +275,40 @@ namespace InterviewPortal.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("InterviewPortal.Models.UserAnswer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AnswerId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("InterviewSessionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AnswerId");
+
+                    b.HasIndex("InterviewSessionId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserAnswers");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -327,12 +391,10 @@ namespace InterviewPortal.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderKey")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
@@ -369,12 +431,10 @@ namespace InterviewPortal.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
@@ -392,13 +452,32 @@ namespace InterviewPortal.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("InterviewPortal.Models.User", "User")
-                        .WithMany("Answers")
-                        .HasForeignKey("UserId")
+                    b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("InterviewPortal.Models.InterviewSession", b =>
+                {
+                    b.HasOne("InterviewPortal.Models.Position", "Position")
+                        .WithMany()
+                        .HasForeignKey("PositionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Question");
+                    b.HasOne("InterviewPortal.Models.Topic", "Topic")
+                        .WithMany()
+                        .HasForeignKey("TopicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("InterviewPortal.Models.User", "User")
+                        .WithMany("InterviewSessions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Position");
+
+                    b.Navigation("Topic");
 
                     b.Navigation("User");
                 });
@@ -435,19 +514,50 @@ namespace InterviewPortal.Migrations
 
             modelBuilder.Entity("InterviewPortal.Models.Result", b =>
                 {
-                    b.HasOne("InterviewPortal.Models.Position", "Position")
-                        .WithMany("Results")
-                        .HasForeignKey("PositionId")
+                    b.HasOne("InterviewPortal.Models.InterviewSession", "InterviewSession")
+                        .WithMany()
+                        .HasForeignKey("InterviewSessionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("InterviewPortal.Models.User", "User")
                         .WithMany("Results")
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("InterviewSession");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("InterviewPortal.Models.UserAnswer", b =>
+                {
+                    b.HasOne("InterviewPortal.Models.Answer", "Answer")
+                        .WithMany()
+                        .HasForeignKey("AnswerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Position");
+                    b.HasOne("InterviewPortal.Models.InterviewSession", null)
+                        .WithMany("UserAnswers")
+                        .HasForeignKey("InterviewSessionId");
+
+                    b.HasOne("InterviewPortal.Models.Question", "Question")
+                        .WithMany("UserAnswers")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InterviewPortal.Models.User", "User")
+                        .WithMany("UserAnswers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Answer");
+
+                    b.Navigation("Question");
 
                     b.Navigation("User");
                 });
@@ -503,16 +613,21 @@ namespace InterviewPortal.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InterviewPortal.Models.InterviewSession", b =>
+                {
+                    b.Navigation("UserAnswers");
+                });
+
             modelBuilder.Entity("InterviewPortal.Models.Position", b =>
                 {
                     b.Navigation("PositionTopics");
-
-                    b.Navigation("Results");
                 });
 
             modelBuilder.Entity("InterviewPortal.Models.Question", b =>
                 {
                     b.Navigation("Answers");
+
+                    b.Navigation("UserAnswers");
                 });
 
             modelBuilder.Entity("InterviewPortal.Models.Topic", b =>
@@ -524,9 +639,11 @@ namespace InterviewPortal.Migrations
 
             modelBuilder.Entity("InterviewPortal.Models.User", b =>
                 {
-                    b.Navigation("Answers");
+                    b.Navigation("InterviewSessions");
 
                     b.Navigation("Results");
+
+                    b.Navigation("UserAnswers");
                 });
 #pragma warning restore 612, 618
         }

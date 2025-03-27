@@ -1,5 +1,4 @@
 ﻿namespace InterviewPortal.Services;
-
 public class DatabaseInit : IHostedService
 {
     private readonly IServiceProvider _serviceProvider;
@@ -18,19 +17,20 @@ public class DatabaseInit : IHostedService
 
         try
         {
+            //await dbContext.Database.EnsureDeletedAsync(cancellationToken);
             await dbContext.Database.EnsureCreatedAsync(cancellationToken);
 
-            //Users and Roles
+            // Users and Roles
             await SeedRolesAsync(roleManager);
             await SeedUsersAsync(userManager);
             await AssignRolesToUsersAsync(userManager);
 
+            // Seed Positions, Topics, PositionTopics, Questions, and Answers
             var positions = await SeedPositionsAsync(dbContext);
             var topics = await SeedTopicsAsync(dbContext);
             await SeedPositionTopicsAsync(dbContext, positions, topics);
             var questions = await SeedQuestionsAsync(dbContext, topics);
             await SeedAnswersAsync(dbContext, questions);
-            await SeedResultsAsync(dbContext, positions);
 
             Console.WriteLine("Database seeded successfully!");
         }
@@ -49,9 +49,10 @@ public class DatabaseInit : IHostedService
     {
         async Task CreateUserIfNotExists(string email, string password, string firstName, string lastName)
         {
-            if (await userManager.FindByEmailAsync(email) == null)
+            var user = await userManager.FindByEmailAsync(email);
+            if (user == null)
             {
-                var user = new User
+                user = new User
                 {
                     UserName = email,
                     Email = email,
@@ -77,21 +78,34 @@ public class DatabaseInit : IHostedService
         }
 
         await CreateUserIfNotExists("admin@interviewportal.com", "Admin123!", "Admin", "Admin");
+        await CreateUserIfNotExists("hr@interviewportal.com", "HR123!", "Bob", "Perkins");
         await CreateUserIfNotExists("candidate@interviewportal.com", "Candidate123!", "John", "Smith");
     }
 
+    // Seed Positions
     private async Task<List<Position>> SeedPositionsAsync(InterviewPortalDbContext dbContext)
     {
         var positions = new List<Position>
         {
-            new Position { Name = "Software Engineer", PassScore = 0 },
-            new Position { Name = "Product Manager", PassScore = 0 }
+            new Position { Name = "Software Engineer" },
+            new Position { Name = "Product Manager" },
+            new Position { Name = "UX Designer" }
         };
 
-        dbContext.Positions.AddRange(positions);
-        await dbContext.SaveChangesAsync();
+        foreach (var position in positions)
+        {
+            if (!await dbContext.Positions.AnyAsync(p => p.Name == position.Name))
+            {
+                dbContext.Positions.Add(position);
+                Console.WriteLine($"Added position: {position.Name}");
+            }
+            else
+            {
+                Console.WriteLine($"Position already exists: {position.Name}");
+            }
+        }
 
-        Console.WriteLine($"Added {positions.Count} positions");
+        await dbContext.SaveChangesAsync();
         return positions;
     }
 
@@ -100,30 +114,73 @@ public class DatabaseInit : IHostedService
         var topics = new List<Topic>
         {
             new Topic { Name = "C# Fundamentals", Description = "Basic C# programming concepts and syntax" },
-            new Topic { Name = "ASP.NET Core", Description = "Web development with ASP.NET Core framework" }
+            new Topic { Name = "ASP.NET Core", Description = "Web development with ASP.NET Core framework" },
+            new Topic { Name = "Algorithm Design", Description = "Understanding and designing algorithms" },
+            new Topic { Name = "Product Development", Description = "From idea to product launch" },
+            new Topic { Name = "Market Research", Description = "Understanding market dynamics and customer needs" },
+            new Topic { Name = "UX Design Principles", Description = "User experience design best practices" },
+            new Topic { Name = "Wireframing", Description = "Creating wireframes for websites and apps" },
+            new Topic { Name = "Prototyping", Description = "Building prototypes for user feedback" }
         };
 
-        dbContext.Topics.AddRange(topics);
-        await dbContext.SaveChangesAsync();
+        foreach (var topic in topics)
+        {
+            if (!await dbContext.Topics.AnyAsync(t => t.Name == topic.Name))
+            {
+                dbContext.Topics.Add(topic);
+                Console.WriteLine($"Added topic: {topic.Name}");
+            }
+            else
+            {
+                Console.WriteLine($"Topic already exists: {topic.Name}");
+            }
+        }
 
-        Console.WriteLine($"Added {topics.Count} topics");
+        await dbContext.SaveChangesAsync();
         return topics;
     }
 
     private async Task SeedPositionTopicsAsync(InterviewPortalDbContext dbContext, List<Position> positions, List<Topic> topics)
     {
-        Position FindPosition(string name) => positions.First(p => p.Name == name);
-
-        var positionTopics = new List<PositionTopic>
+        var positionTopics = new Dictionary<string, List<string>>
         {
-            new PositionTopic { Position = FindPosition("Software Engineer"), TopicId = topics.First(t => t.Name == "C# Fundamentals").Id },
-            new PositionTopic { Position = FindPosition("Product Manager"), TopicId = topics.First(t => t.Name == "ASP.NET Core").Id }
+            { "Software Engineer", new List<string> { "C# Fundamentals", "ASP.NET Core", "Algorithm Design" } },
+            { "Product Manager", new List<string> { "Product Development", "Market Research", "ASP.NET Core" } },
+            { "UX Designer", new List<string> { "UX Design Principles", "Wireframing", "Prototyping" } }
         };
 
-        dbContext.PositionTopics.AddRange(positionTopics);
-        await dbContext.SaveChangesAsync();
+        foreach (var position in positions)
+        {
+            if (positionTopics.ContainsKey(position.Name))
+            {
+                var assignedTopics = positionTopics[position.Name];
 
-        Console.WriteLine($"Added {positionTopics.Count} position-topic relationships");
+                foreach (var topicName in assignedTopics)
+                {
+                    var topic = await dbContext.Topics.FirstOrDefaultAsync(t => t.Name == topicName);
+                    if (topic != null)
+                    {
+                        var existingEntry = await dbContext.PositionTopics
+                            .FirstOrDefaultAsync(pt => pt.PositionId == position.Id && pt.TopicId == topic.Id);
+
+                        if (existingEntry == null)
+                        {
+                            dbContext.PositionTopics.Add(new PositionTopic
+                            {
+                                PositionId = position.Id,
+                                TopicId = topic.Id
+                            });
+                            Console.WriteLine($"Added Position-Topic relationship: {position.Name} - {topic.Name}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Position-Topic relationship already exists: {position.Name} - {topic.Name}");
+                        }
+                    }
+                }
+            }
+        }
+        await dbContext.SaveChangesAsync();
     }
 
     private async Task<List<Question>> SeedQuestionsAsync(InterviewPortalDbContext dbContext, List<Topic> topics)
@@ -131,24 +188,20 @@ public class DatabaseInit : IHostedService
         Topic FindTopic(string name) => topics.First(t => t.Name == name);
 
         var questions = new List<Question>
-        {
-            new Question
             {
-                QuestionText = "What is the difference between value types and reference types in C#?",
-                CorrectAnswer = "Value types store data directly on the stack, while reference types store a reference to their data on the heap.",
-                Topic = FindTopic("C# Fundamentals"),
-                Score = 1,
-                Difficulty = QuestionDifficultyLevel.Easy
-            },
-            new Question
-            {
-                QuestionText = "What is middleware in ASP.NET Core and how is it configured?",
-                CorrectAnswer = "Middleware are components forming a pipeline to handle requests and responses. They are configured in Program.cs using Use/Run/Map methods.",
-                Topic = FindTopic("ASP.NET Core"),
-                Score = 2,
-                Difficulty = QuestionDifficultyLevel.Medium
-            }
-        };
+                new Question
+                {
+                    QuestionText = "What is the difference between value types and reference types in C#?",
+                    TopicId = FindTopic("C# Fundamentals").Id,
+                    Difficulty = QuestionDifficultyLevel.Easy
+                },
+                new Question
+                {
+                    QuestionText = "What is middleware in ASP.NET Core and how is it configured?",
+                    TopicId = FindTopic("ASP.NET Core").Id,
+                    Difficulty = QuestionDifficultyLevel.Medium
+                }
+            };
 
         dbContext.Questions.AddRange(questions);
         await dbContext.SaveChangesAsync();
@@ -159,54 +212,51 @@ public class DatabaseInit : IHostedService
 
     private async Task SeedAnswersAsync(InterviewPortalDbContext dbContext, List<Question> questions)
     {
-        var candidateUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == "candidate@example.com");
-        if (candidateUser == null)
+        var question1 = questions.FirstOrDefault(q => q.QuestionText.Contains("value types"));
+        var question2 = questions.FirstOrDefault(q => q.QuestionText.Contains("middleware"));
+
+        if (question1 != null)
         {
-            Console.WriteLine("Candidate user not found, skipping answer seeding.");
-            return;
+            var answersForQ1 = new List<Answer>
+                {
+                    new Answer
+                    {
+                        QuestionId = question1.Id,
+                        AnswerText = "Value types store data directly on the stack, while reference types store a reference on the heap.",
+                        IsCorrect = true
+                    },
+                    new Answer
+                    {
+                        QuestionId = question1.Id,
+                        AnswerText = "Value types store a reference, while reference types store data directly.",
+                        IsCorrect = false
+                    }
+                };
+            dbContext.Answers.AddRange(answersForQ1);
         }
 
-        var question = questions.FirstOrDefault();
-        if (question == null) return;
-
-        var answer = new Answer
+        if (question2 != null)
         {
-            UserAnswer = "Value types store their data directly in memory allocated on the stack, while reference types store a reference (memory address) to the actual data which is stored on the heap.",
-            IsCorrect = true,
-            AnsweredAt = DateTime.Now.AddDays(-3),
-            UserId = candidateUser.Id,
-            QuestionId = question.Id
-        };
-
-        dbContext.Answers.Add(answer);
-        await dbContext.SaveChangesAsync();
-
-        Console.WriteLine("Added a sample answer");
-    }
-
-    private async Task SeedResultsAsync(InterviewPortalDbContext dbContext, List<Position> positions)
-    {
-        var candidateUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == "candidate@example.com");
-        if (candidateUser == null)
-        {
-            Console.WriteLine("Candidate user not found, skipping result seeding.");
-            return;
+            var answersForQ2 = new List<Answer>
+                {
+                    new Answer
+                    {
+                        QuestionId = question2.Id,
+                        AnswerText = "Middleware are components that handle requests and responses; they are configured in Program.cs.",
+                        IsCorrect = true
+                    },
+                    new Answer
+                    {
+                        QuestionId = question2.Id,
+                        AnswerText = "Middleware is used solely for logging and cannot handle responses.",
+                        IsCorrect = false
+                    }
+                };
+            dbContext.Answers.AddRange(answersForQ2);
         }
 
-        var position = positions.FirstOrDefault(p => p.Name == "Software Engineer");
-        if (position == null) return;
-
-        var result = new Result
-        {
-            FinalScore = 8,
-            UserId = candidateUser.Id,
-            PositionId = position.Id
-        };
-
-        dbContext.Results.Add(result);
         await dbContext.SaveChangesAsync();
-
-        Console.WriteLine("Added a sample interview result");
+        Console.WriteLine("Added sample answers for questions");
     }
 
     private async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
