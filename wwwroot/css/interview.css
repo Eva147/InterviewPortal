@@ -1,0 +1,161 @@
+﻿/* Interview Session Styles */
+.interview-type-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 30px 20px;
+    text-align: center;
+}
+
+.interview-questions {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 30px;
+    width: 100%;
+    max-width: 800px;
+}
+
+.question-container {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.question-text {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--secondary-color);
+}
+
+.answers-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.answer-option {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    border-radius: 10px;
+    background-color: rgba(45, 56, 72, 0.05);
+    transition: all 0.2s ease;
+}
+
+    .answer-option:hover {
+        background-color: var(--addicional-color);
+        ;
+    }
+
+    .answer-option input[type="radio"] {
+        margin-right: 15px;
+        cursor: pointer;
+        width: 18px;
+        height: 18px;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        border: 2px solid #4a5568;
+        border-radius: 50%;
+        outline: none;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .answer-option input[type="radio"]:checked {
+            border-color: var(--secondary-color);
+            background-color: var(--accent-color);
+            box-shadow: inset 0 0 0 4px #fff;
+        }
+
+    .answer-option input[type="radio"]:hover {
+        border-color: #2c5282;
+    }
+
+    .answer-option label {
+        flex: 1;
+        cursor: pointer;
+        font-weight: 500;
+        margin-bottom: 0;
+    }
+
+.submit-container {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.interview-button {
+    background-color: var(--accent-color);
+    color: var(--primary-color);
+    border-radius: 20px;
+    padding: 15px 35px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+    margin: 5px;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+}
+
+    .interview-button:hover {
+        background-color: var(--accent-shadow-color);
+        color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+    }
+
+    .interview-button:focus,
+    .interview-button:active,
+    .interview-button:active:focus {
+        box-shadow: none !important;
+        outline: none !important;
+        background-color: #d84a48;
+        transform: translateY(1px);
+        border-color: #d84a48;
+    }
+
+.back-link {
+    margin-top: 25px;
+    text-align: center;
+}
+
+    .back-link a {
+        color: var(--secondary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+        .back-link a:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+
+/* Make the layout responsive */
+@media (max-width: 768px) {
+    .question-container {
+        padding: 15px;
+    }
+
+    .question-text {
+        font-size: 16px;
+    }
+
+    .answer-option {
+        padding: 8px 12px;
+    }
+}

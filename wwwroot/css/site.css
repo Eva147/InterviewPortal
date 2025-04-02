@@ -9,10 +9,20 @@ html {
 }
 
 :root {
+    /*white*/
     --primary-color: #FFFFFF;
+    /*dark-blue*/
     --secondary-color: #2D3848;
+    /*orange*/
     --accent-color: #F15C5A;
+    /*orange-shadow*/
+    --accent-shadow-color: #d84a48;
+    /*gray*/
     --addicional-color: #E5E7EB;
+    /*green*/
+    --green-color: #4CAF50;
+    /*green-shadow*/
+    --green-shadow-color: #3A8A3E;
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {

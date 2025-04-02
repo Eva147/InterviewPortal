@@ -1,11 +1,15 @@
-﻿namespace InterviewPortal.Services;
+﻿using InterviewPortal.Models;
+
+namespace InterviewPortal.Services;
 public class DatabaseInit : IHostedService
 {
     private readonly IServiceProvider _serviceProvider;
+    private readonly IConfiguration _configuration;
 
-    public DatabaseInit(IServiceProvider serviceProvider)
+    public DatabaseInit(IServiceProvider serviceProvider, IConfiguration configuration)
     {
         _serviceProvider = serviceProvider;
+        _configuration = configuration;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -17,22 +21,95 @@ public class DatabaseInit : IHostedService
 
         try
         {
-            //await dbContext.Database.EnsureDeletedAsync(cancellationToken);
-            await dbContext.Database.EnsureCreatedAsync(cancellationToken);
 
-            // Users and Roles
-            await SeedRolesAsync(roleManager);
-            await SeedUsersAsync(userManager);
-            await AssignRolesToUsersAsync(userManager);
+            bool resetDatabase = _configuration.GetValue<bool>("DatabaseSettings:ResetOnStartup", false);
 
-            // Seed Positions, Topics, PositionTopics, Questions, and Answers
-            var positions = await SeedPositionsAsync(dbContext);
-            var topics = await SeedTopicsAsync(dbContext);
-            await SeedPositionTopicsAsync(dbContext, positions, topics);
-            var questions = await SeedQuestionsAsync(dbContext, topics);
-            await SeedAnswersAsync(dbContext, questions);
+            if (resetDatabase)
+            {
+                // First check and delete any sessions with invalid user references
+                if (dbContext.InterviewSessions != null)
+                {
+                    // Find all user IDs referenced in sessions
+                    var sessionUserIds = await dbContext.InterviewSessions
+                        .Select(s => s.UserId)
+                        .Distinct()
+                        .ToListAsync(cancellationToken);
 
-            Console.WriteLine("Database seeded successfully!");
+                    // Find user IDs that don't exist in AspNetUsers
+                    var invalidUserIds = new List<string>();
+                    foreach (var userId in sessionUserIds)
+                    {
+                        var userExists = await dbContext.Users.AnyAsync(u => u.Id == userId, cancellationToken);
+                        if (!userExists)
+                        {
+                            invalidUserIds.Add(userId);
+                        }
+                    }
+
+                    // Delete sessions with invalid user IDs
+                    if (invalidUserIds.Any())
+                    {
+                        var sessionsToDelete = await dbContext.InterviewSessions
+                            .Where(s => invalidUserIds.Contains(s.UserId))
+                            .ToListAsync(cancellationToken);
+
+                        dbContext.InterviewSessions.RemoveRange(sessionsToDelete);
+                        await dbContext.SaveChangesAsync(cancellationToken);
+                        Console.WriteLine($"Deleted {sessionsToDelete.Count} interview sessions with invalid user references.");
+                    }
+                }
+
+                // Delete and recreate the database if reset is enabled
+                await dbContext.Database.EnsureDeletedAsync(cancellationToken);
+                Console.WriteLine("Database deleted for reset.");
+
+                await dbContext.Database.EnsureCreatedAsync(cancellationToken);
+                Console.WriteLine("Database recreated.");
+
+                // Seed everything fresh
+                await SeedRolesAsync(roleManager);
+                await SeedUsersAsync(userManager);
+                await AssignRolesToUsersAsync(userManager);
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+
+                // Seed Positions, Topics, PositionTopics, Questions, and Answers
+                var positions = await SeedPositionsAsync(dbContext);
+                var topics = await SeedTopicsAsync(dbContext);
+                await SeedPositionTopicsAsync(dbContext, positions, topics);
+                var questions = await SeedQuestionsAsync(dbContext, topics);
+                await SeedAnswersAsync(dbContext, questions);
+
+                Console.WriteLine("Database seeded successfully!");
+            }
+            else
+            {
+                //await dbContext.Database.EnsureDeletedAsync(cancellationToken);
+                bool dbCreated = await dbContext.Database.EnsureCreatedAsync(cancellationToken);
+
+                if (dbCreated)
+                {
+                    // Users and Roles
+                    await SeedRolesAsync(roleManager);
+                    await SeedUsersAsync(userManager);
+                    await AssignRolesToUsersAsync(userManager);
+
+                    await dbContext.SaveChangesAsync(cancellationToken);
+
+                    // Seed Positions, Topics, PositionTopics, Questions, and Answers
+                    var positions = await SeedPositionsAsync(dbContext);
+                    var topics = await SeedTopicsAsync(dbContext);
+                    await SeedPositionTopicsAsync(dbContext, positions, topics);
+                    var questions = await SeedQuestionsAsync(dbContext, topics);
+                    await SeedAnswersAsync(dbContext, questions);
+
+                    Console.WriteLine("Database seeded successfully!");
+                }
+                else
+                {
+                    Console.WriteLine("Database already exists.");
+                }
+            }        
         }
         catch (Exception ex)
         {
@@ -78,7 +155,7 @@ public class DatabaseInit : IHostedService
         }
 
         await CreateUserIfNotExists("admin@interviewportal.com", "Admin123!", "Admin", "Admin");
-        await CreateUserIfNotExists("hr@interviewportal.com", "HR123!", "Bob", "Perkins");
+        await CreateUserIfNotExists("hr@interviewportal.com", "Hr123!", "Bob", "Perkins");
         await CreateUserIfNotExists("candidate@interviewportal.com", "Candidate123!", "John", "Smith");
     }
 
@@ -200,6 +277,24 @@ public class DatabaseInit : IHostedService
                     QuestionText = "What is middleware in ASP.NET Core and how is it configured?",
                     TopicId = FindTopic("ASP.NET Core").Id,
                     Difficulty = QuestionDifficultyLevel.Medium
+                },
+                new Question
+                {
+                    QuestionText = "What is the purpose of the \"using\" statement in C#?",
+                    TopicId = FindTopic("C# Fundamentals").Id,
+                    Difficulty = QuestionDifficultyLevel.Easy
+                },
+                new Question
+                {
+                    QuestionText = "What is the difference between a product manager and a project manager?",
+                    TopicId = FindTopic("Product Development").Id,
+                    Difficulty = QuestionDifficultyLevel.Easy
+                },
+                new Question
+                {
+                    QuestionText = "Explain the difference between abstract classes and interfaces in C#.",
+                    TopicId = FindTopic("C# Fundamentals").Id,
+                    Difficulty = QuestionDifficultyLevel.Medium
                 }
             };
 
@@ -214,6 +309,8 @@ public class DatabaseInit : IHostedService
     {
         var question1 = questions.FirstOrDefault(q => q.QuestionText.Contains("value types"));
         var question2 = questions.FirstOrDefault(q => q.QuestionText.Contains("middleware"));
+        var question3 = questions.FirstOrDefault(q => q.QuestionText.Contains("using"));
+        var question4 = questions.FirstOrDefault(q => q.QuestionText.Contains("interfaces"));
 
         if (question1 != null)
         {
@@ -230,6 +327,30 @@ public class DatabaseInit : IHostedService
                         QuestionId = question1.Id,
                         AnswerText = "Value types store a reference, while reference types store data directly.",
                         IsCorrect = false
+                    },
+                    new Answer
+                    {
+                        QuestionId = question3.Id,
+                        AnswerText = "The \"using\" statement ensures that IDisposable objects are properly disposed of when they go out of scope, even if exceptions occur.",
+                        IsCorrect = true,
+                    },
+                    new Answer
+                    {
+                        QuestionId = question3.Id,
+                        AnswerText = "The \"using\" statement is only for importing namespaces and has no effect on resource management.",
+                        IsCorrect = false,
+                    },
+                    new Answer
+                    {
+                        QuestionId = question4.Id,
+                        AnswerText = "Abstract classes can contain implementation details, constructors, and fields, while interfaces primarily define contracts. A class can inherit from only one abstract class but can implement multiple interfaces.",
+                        IsCorrect = true,
+                    },
+                    new Answer
+                    {
+                        QuestionId = question4.Id,
+                        AnswerText = "Abstract classes and interfaces are interchangeable in C#, with interfaces supporting default implementations in all versions and providing better performance than inheritance.",
+                        IsCorrect = false,
                     }
                 };
             dbContext.Answers.AddRange(answersForQ1);

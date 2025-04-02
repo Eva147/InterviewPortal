@@ -1,0 +1,126 @@
+﻿.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.filter-form {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+    .filter-form input, .filter-form select, .filter-form button {
+        padding: 10px 15px;
+        margin: 0 10px;
+        border-radius: 10px;
+        border: .5px solid #ddd;
+    }
+
+    .filter-form button {
+        background-color: var(--green-color);
+        padding: 10px 15px;
+        color: var(--primary-color);
+        border: none;
+        cursor: pointer;
+    }
+
+        .filter-form button:hover {
+            background-color: var(--green-shadow-color);
+        }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #f4f4f9;
+    font-weight: bold;
+    color: #4b4b4b;
+}
+
+.sortable-column a:hover {
+    color: var(--green-color) !important;
+    text-decoration: none;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+.sortable-column a {
+    text-decoration: none;
+    color: inherit;
+}
+
+    .sortable-column a:hover {
+        color: #007bff;
+    }
+
+.actions a {
+    color: var(--primary-color);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.actions .btn-edit {
+    background-color: var(--green-color);
+}
+
+.actions .btn-delete {
+    background-color: var(--accent-color);
+}
+
+.actions .btn-edit:hover {
+    background-color: var(--green-shadow-color);
+}
+
+.actions .btn-delete:hover {
+    background-color: #c82333;
+}
+
+.no-results {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+}
+@media (max-width: 768px) {
+    .filter-form
+
+{
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.filter-form input,
+.filter-form select,
+.filter-form button {
+    margin: 5px 0;
+    width: 100%;
+}
+
+table {
+    font-size: 14px;
+}
+
+th, td {
+    padding: 8px;
+}
+}
