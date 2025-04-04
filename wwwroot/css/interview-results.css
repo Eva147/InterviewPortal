@@ -1,0 +1,187 @@
+﻿.results-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 30px 20px;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.results-header {
+    width: 100%;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+    .results-header h1 {
+        color: var(--secondary-color);
+        font-weight: 600;
+        margin: 0;
+    }
+
+.mock-badge {
+    background-color: var(--green-color);
+    color: var(--primary-color);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    position: absolute;
+    right: 0;
+}
+
+.position-info {
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+    .position-info h2 {
+        color: var(--secondary-color);
+        font-size: 20px;
+        margin-bottom: 5px;
+    }
+
+.result-image-container {
+    margin: 30px 0;
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.result-image {
+    max-height: 100%;
+    max-width: 100%;
+    transition: transform 0.5s ease, filter 0.5s ease;
+}
+
+@keyframes fadeInScale {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.result-image {
+    animation: fadeInScale 0.8s ease forwards;
+}
+
+.score-container {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    margin: 20px 0;
+    width: 100%;
+}
+
+    .score-container h3 {
+        color: var(--secondary-color);
+        font-weight: 600;
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+
+.score-text {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--secondary-color);
+}
+
+.mock-instructions, .real-submission-info {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    margin: 20px 0;
+    width: 100%;
+    text-align: left;
+}
+
+    .mock-instructions h3, .real-submission-info h3 {
+        color: var(--secondary-color);
+        font-weight: 600;
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+
+    .submission-message p, .mock-instructions p {
+        color: var(--secondary-color);
+        opacity: 0.9;
+        line-height: 1.6;
+    }
+
+.next-steps {
+    margin-top: 20px;
+}
+
+    .next-steps h3 {
+        color: var(--secondary-color);
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .next-steps ul {
+        padding-left: 20px;
+    }
+
+    .next-steps li {
+        color: var(--secondary-color);
+        opacity: 0.9;
+        margin-bottom: 10px;
+        line-height: 1.4;
+    }
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+    .action-buttons a {
+        background-color: var(--accent-color);
+        color: var(--primary-color);
+        border-radius: 20px;
+        padding: 10px 25px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+        .action-buttons a:hover {
+            background-color: var(--accent-shadow-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+        }
+
+        .action-buttons a:focus,
+        .action-buttons a:active {
+            box-shadow: none !important;
+            outline: none !important;
+            background-color: #d84a48;
+            transform: translateY(1px);
+            border-color: #d84a48;
+        }
