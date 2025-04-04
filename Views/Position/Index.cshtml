@@ -1,192 +1,263 @@
-﻿@model IEnumerable<InterviewPortal.Models.Position>
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<User> SignInManager
-@inject UserManager<User> UserManager
-
+﻿@model List<InterviewPortal.Models.Position>
 @{
-    ViewData["Title"] = "Positions";
+    ViewBag.Title = "Manage Positions";
+    var allTopics = ViewBag.AllTopics as List<InterviewPortal.Models.Topic>;
 }
 
-<h2 class="mb-4">Available Positions</h2>
+<h2 class="mb-4">Manage Positions</h2>
 
 @if (TempData["Message"] != null)
 {
     <div class="alert alert-success">@TempData["Message"]</div>
 }
 
-<!-- Positions Table -->
-<table class="table table-striped table-bordered">
-    <thead class="table-dark">
-        <tr>
-            <th>Position</th>
-            <th>Topics</th>
-            @if (User.IsInRole("HR") || User.IsInRole("Admin"))
-            {
-                <th>Actions</th> 
-            }
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var position in Model.Distinct()) 
-        {
-            <tr>
-                <td>@position.Name</td>
-                <td>
-                    @foreach (var topic in position.PositionTopics.Select(pt => pt.Topic).Distinct())
-                    {
-                        <button class="btn btn-link" data-bs-toggle="modal" data-bs-target="#selectTopicModal-@position.Id-@topic.Id" title="Select Topic">@topic.Name</button>
-                        <br />
-                    }
-                </td>
-                <td>
-                    @if (User.IsInRole("HR") || User.IsInRole("Admin"))
-                    {
-                        <!-- Edit Button -->
-                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal-@position.Id">
-                            <i class="bi bi-pencil-square"></i> Edit
-                        </button>
+<!-- Create Position Button -->
+<button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createPositionModal">Add Position</button>
 
-                        <!-- Delete Button -->
-                        <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal-@position.Id">
-                            <i class="bi bi-trash"></i> Delete
-                        </button>
-                    }
-                </td>
-            </tr>
+<!-- Create Topic Button -->
+<button class="btn btn-secondary mb-3 ms-2" data-bs-toggle="modal" data-bs-target="#createTopicModal">Add Topic</button>
 
-            <!-- Modal for selecting topic (Incomplete) -->
-            @foreach (var topic in position.PositionTopics.Select(pt => pt.Topic).Distinct())
-            {
-                <div class="modal fade" id="selectTopicModal-@position.Id-@topic.Id" tabindex="-1" aria-labelledby="selectTopicModalLabel-@position.Id-@topic.Id" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="selectTopicModalLabel-@position.Id-@topic.Id">Select Interview Type</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form asp-action="StartInterview" method="post">
-                                    <input type="hidden" name="positionId" value="@position.Id" />
-                                    <input type="hidden" name="topicId" value="@topic.Id" />
-
-                                    <!-- Select Interview Type (Mock or Real) -->
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="interviewType" id="mockInterview-@position.Id-@topic.Id" value="Mock" checked>
-                                        <label class="form-check-label" for="mockInterview-@position.Id-@topic.Id">
-                                            Mock Interview
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="interviewType" id="realInterview-@position.Id-@topic.Id" value="Real">
-                                        <label class="form-check-label" for="realInterview-@position.Id-@topic.Id">
-                                            Real Interview
-                                        </label>
-                                    </div>
-
-                                    <!-- Submit and Cancel buttons -->
-                                    <div class="modal-footer">
-                                        <button type="submit" class="btn btn-primary">Start Interview</button>
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <!-- Edit Position Modal -->
-            @if (User.IsInRole("HR") || User.IsInRole("Admin"))
-            {
-                <div class="modal fade" id="editModal-@position.Id" tabindex="-1">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Edit Position</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form asp-action="Edit" method="post">
-                                    <input type="hidden" name="Id" value="@position.Id" />
-                                    <div class="mb-3">
-                                        <label for="positionName" class="form-label">Position Name</label>
-                                        <input type="text" class="form-control" name="Name" value="@position.Name" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="Topics" class="form-label">Select Topics</label>
-                                        <select multiple class="form-select" name="Topics">
-                                            @foreach (var topic in Model.SelectMany(p => p.PositionTopics).Select(pt => pt.Topic).Distinct())
-                                            {
-                                                <option value="@topic.Id">@topic.Name</option>
-                                            }
-                                        </select>
-                                    </div>
-                                    <button type="submit" class="btn btn-success">Save Changes</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Delete Confirmation Modal -->
-                <div class="modal fade" id="deleteModal-@position.Id" tabindex="-1">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Confirm Delete</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p>Are you sure you want to delete <strong>@position.Name</strong>?</p>
-                            </div>
-                            <div class="modal-footer">
-                                <!-- Form to delete the position -->
-                                <form asp-action="Delete" method="post">
-                                    <input type="hidden" name="id" value="@position.Id" />
-                                    <button type="submit" class="btn btn-danger">Delete</button>
-                                </form>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        }
-    </tbody>
-</table>
-
-@if (User.IsInRole("HR") || User.IsInRole("Admin"))
+@foreach (var position in Model)
 {
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal">
-        <i class="bi bi-plus-circle"></i> Add New Position
-    </button>
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title">@position.Name</h4>
 
-    <div class="modal fade" id="addModal" tabindex="-1">
+            <button class="btn btn-sm btn-outline-primary mb-2" data-bs-toggle="modal" data-bs-target="#editPositionModal_@position.Id">Edit Position</button>
+
+            <h5>Topics:</h5>
+            @foreach (var pt in position.PositionTopics)
+            {
+                <div class="border p-2 mb-2">
+                    <strong>@pt.Topic.Name</strong>
+                    <button class="btn btn-sm btn-link text-decoration-none" data-bs-toggle="modal" data-bs-target="#editTopicModal_@pt.Topic.Id">Edit</button>
+
+                    <ul>
+                        @foreach (var q in pt.Topic.Questions)
+                        {
+                            <li>
+                                <strong>Q:</strong> @q.QuestionText
+                                <ul>
+                                    @foreach (var a in q.Answers)
+                                    {
+                                        <li><strong>A:</strong> @a.AnswerText</li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Edit Position Modal -->
+    <div class="modal fade" id="editPositionModal_@position.Id" tabindex="-1" aria-labelledby="editPositionLabel_@position.Id" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Position</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form asp-action="Create" method="post">
+                <form asp-action="EditPosition" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Position - @position.Name</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="id" value="@position.Id" />
                         <div class="mb-3">
-                            <label for="positionName" class="form-label">Position Name</label>
-                            <input type="text" class="form-control" name="Name" required>
+                            <label class="form-label">Name</label>
+                            <input class="form-control" name="Name" value="@position.Name" required />
                         </div>
                         <div class="mb-3">
-                            <label for="Topics" class="form-label">Select Topics</label>
-                            <select multiple class="form-select" name="Topics">
-                                @foreach (var topic in Model.SelectMany(p => p.PositionTopics).Select(pt => pt.Topic).Distinct())
-                                {
-                                    <option value="@topic.Id">@topic.Name</option>
-                                }
-                            </select>
+                            <label class="form-label">Topics</label>
+                            @foreach (var topic in allTopics)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="Topics" value="@topic.Id"
+                                    @(position.PositionTopics.Any(pt => pt.TopicId == topic.Id) ? "checked" : "") />
+                                    <label class="form-check-label">@topic.Name</label>
+                                </div>
+                            }
                         </div>
-                        <button type="submit" class="btn btn-success">Add Position</button>
-                    </form>
-                </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" type="submit">Save</button>
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+}
+
+<!-- Create Position Modal -->
+<div class="modal fade" id="createPositionModal" tabindex="-1" aria-labelledby="createPositionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="CreatePosition" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Position</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Position Name</label>
+                        <input class="form-control" name="Name" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Select Topics</label>
+                        @foreach (var topic in allTopics)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="Topics" value="@topic.Id" />
+                                <label class="form-check-label">@topic.Name</label>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" type="submit">Create</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Create Topic Modal -->
+<div class="modal fade" id="createTopicModal" tabindex="-1" aria-labelledby="createTopicLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form asp-action="CreateTopic" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Topic</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Topic Name</label>
+                        <input class="form-control" name="Name" required />
+                    </div>
+                    <div id="questionContainer">
+                        <div class="question-block border p-2 mb-2">
+                            <label>Question:</label>
+                            <input class="form-control mb-2" name="Questions[0]" />
+                            <label>Answers:</label>
+                            <input class="form-control mb-1" name="Answers[0][0]" />
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary" onclick="addQuestion()">+ Add Question</button>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" type="submit">Create Topic</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Topic Modals -->
+@foreach (var topic in allTopics)
+{
+    <div class="modal fade" id="editTopicModal_@topic.Id" tabindex="-1" aria-labelledby="editTopicLabel_@topic.Id" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form asp-action="EditTopic" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Topic - @topic.Name</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="id" value="@topic.Id" />
+                        <div class="mb-3">
+                            <label>Topic Name</label>
+                            <input class="form-control" name="Name" value="@topic.Name" required />
+                        </div>
+                        @foreach (var question in topic.Questions)
+                        {
+                            <div class="question-block border p-2 mb-3">
+                                <input type="hidden" name="Questions[@question.Id]" value="@question.QuestionText" />
+                                <label>Question:</label>
+                                <input class="form-control mb-2" name="Questions[@question.Id]" value="@question.QuestionText" />
+
+
+                                <label>Answers:</label>
+                                @foreach (var answer in question.Answers)
+                                {
+                                    <div class="input-group mb-1">
+                                        <input class="form-control" name="Answers[@answer.Id]" value="@answer.AnswerText" />
+                                    </div>
+                                }
+                            </div>
+                        }
+                        <hr />
+                        <h5>Add New Question</h5>
+                        <input class="form-control mb-2" name="NewQuestion" />
+                        <h6>Add Answer to Existing Question</h6>
+                        <select class="form-select mb-2" name="NewAnswerQuestionId">
+                            <option value="">-- Select Question --</option>
+                            @foreach (var question in topic.Questions)
+                            {
+                                <option value="@question.Id">@question.QuestionText</option>
+                            }
+                        </select>
+                        <input class="form-control mb-2" name="NewAnswerText" placeholder="New Answer Text" />
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" type="submit">Save</button>
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        let questionIndex = 0;
+
+        function addQuestion() {
+            questionIndex++;
+            const container = document.getElementById("questionContainer");
+            const block = document.createElement("div");
+            block.className = "question-block border p-2 mb-2";
+            block.innerHTML = `
+                <label>Question:</label>
+                <input class="form-control mb-2" name="Questions[${questionIndex}]" />
+                <label>Answers:</label>
+                <div id="answersContainer_${questionIndex}">
+                    <input class="form-control mb-1" name="Answers[${questionIndex}][0]" />
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addAnswer(${questionIndex})">+ Add Answer</button>
+            `;
+            container.appendChild(block);
+        }
+
+        function addAnswer(questionId) {
+            const container = document.getElementById(`answersContainer_${questionId}`);
+            const answerIndex = container.children.length;
+            const input = document.createElement("input");
+            input.className = "form-control mb-1";
+            input.name = `Answers[${questionId}][${answerIndex}]`;
+            container.appendChild(input);
+        }
+
+        // Reset the modal to its initial state when closed
+        document.getElementById("createTopicModal").addEventListener("hidden.bs.modal", function () {
+            const container = document.getElementById("questionContainer");
+            container.innerHTML = `
+                <div class="question-block border p-2 mb-2">
+                    <label>Question:</label>
+                    <input class="form-control mb-2" name="Questions[0]" />
+                    <label>Answers:</label>
+                    <div id="answersContainer_0">
+                        <input class="form-control mb-1" name="Answers[0][0]" />
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addAnswer(0)">+ Add Answer</button>
+                </div>
+            `;
+            questionIndex = 0;
+        });
+
+    </script>
 }
