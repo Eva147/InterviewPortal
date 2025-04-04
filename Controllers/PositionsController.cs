@@ -17,6 +17,7 @@ public class PositionController : Controller
         try
         {
             var positions = await _context.Positions
+                .Where(p => p.IsActive)
                 .Include(p => p.PositionTopics)
                     .ThenInclude(pt => pt.Topic)
                 .ToListAsync();
@@ -29,6 +30,8 @@ public class PositionController : Controller
                     .ToList();
             }
 
+            ViewBag.AllTopics = await _context.Topics.ToListAsync();
+
             return View(positions);
         }
         catch
@@ -37,7 +40,7 @@ public class PositionController : Controller
             return View(new List<Position>());
         }
     }
-
+    // do we need it here? it's admin page
     [HttpPost]
     public async Task<IActionResult> StartInterview(int positionId, int topicId, bool isMock)
     {
@@ -149,7 +152,12 @@ public class PositionController : Controller
         var position = await _context.Positions.FindAsync(id);
         if (position != null)
         {
-            _context.Positions.Remove(position);
+            position.IsActive = false;
+            _context.Update(position);
+            var positionTopics = await _context.PositionTopics
+            .Where(pt => pt.PositionId == id)
+            .ToListAsync();
+            _context.PositionTopics.RemoveRange(positionTopics);
             await _context.SaveChangesAsync();
         }
 
