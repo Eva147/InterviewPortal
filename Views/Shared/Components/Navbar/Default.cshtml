@@ -22,14 +22,14 @@
                     </li>
                 }
 
-                @if (User.IsInRole("Candidate"))
+                @if (User.Identity.IsAuthenticated)
                 {
                     <li class="nav-item">
                         <a class="nav-link" asp-area="" asp-controller="Candidate" asp-action="Index">Interview</a>
                     </li>
                 }
 
-                @if (User.Identity.IsAuthenticated)
+                @if (User.IsInRole("HR") || User.IsInRole("Admin"))
                 {
                     <li class="nav-item">
                         <a class="nav-link" asp-area="" asp-controller="Position" asp-action="Index">Positions</a>

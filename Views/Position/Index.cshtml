@@ -141,9 +141,13 @@
                             <label>Question:</label>
                             <input class="form-control mb-2" name="Questions[0]" />
                             <label>Answers:</label>
-                            <input class="form-control mb-1" name="Answers[0][0]" />
+                            <div id="answersContainer_0">
+                                <input class="form-control mb-1" name="Answers[0][0]" />
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addAnswer(0)">+ Add Answer</button>
                         </div>
                     </div>
+
                     <button type="button" class="btn btn-outline-secondary" onclick="addQuestion()">+ Add Question</button>
                 </div>
                 <div class="modal-footer">
@@ -155,8 +159,8 @@
     </div>
 </div>
 
-<!-- Edit Topic Modals -->
-@foreach (var topic in allTopics)
+<!-- Edit Topic Modals (TODO: Incomplete) --> 
+@* @foreach (var topic in allTopics)
 {
     <div class="modal fade" id="editTopicModal_@topic.Id" tabindex="-1" aria-labelledby="editTopicLabel_@topic.Id" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -211,6 +215,7 @@
         </div>
     </div>
 }
+ *@
 
 @section Scripts {
     <script>
@@ -239,10 +244,10 @@
             const input = document.createElement("input");
             input.className = "form-control mb-1";
             input.name = `Answers[${questionId}][${answerIndex}]`;
+
             container.appendChild(input);
         }
 
-        // Reset the modal to its initial state when closed
         document.getElementById("createTopicModal").addEventListener("hidden.bs.modal", function () {
             const container = document.getElementById("questionContainer");
             container.innerHTML = `
@@ -258,6 +263,7 @@
             `;
             questionIndex = 0;
         });
+
 
     </script>
 }
