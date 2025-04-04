@@ -1,31 +1,10 @@
-﻿@section Styles {
-<link rel="stylesheet" href="~/css/candidate-dashboard.css" />
+﻿@model List<InterviewPortal.Models.Position>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/candidate-dashboard.css" />
 }
 
 @{
-    var positions = new List<dynamic> {
-        new {
-            Id = 1,
-            Name = "Software Engineer",
-            PassScore = 0,
-            },
-        new {
-            Id = 2,
-            Name = "Product Manager",
-            PassScore = 0,
-            },
-        new {
-            Id = 3,
-            Name = "UX Designer",
-            PassScore = 0,
-        },
-        new {
-            Id = 4,
-            Name = "Tech Lead",
-            PassScore = 0,
-        },
-    };
-
     ViewData["Title"] = "Choose the position";
 }
 
@@ -33,9 +12,9 @@
     <h1>Choose the position</h1>
 
     <div class="positions-list">
-        @if (positions != null && positions.Any())
+        @if (Model != null && Model.Any())
         {
-            @foreach (var position in positions)
+            @foreach (var position in Model)
             {
                 <a href="/Candidate/ApplyPosition/@position.Id" class="position-button">
                     <div class="position-title">@position.Name</div>

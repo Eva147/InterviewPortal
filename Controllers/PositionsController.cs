@@ -19,140 +19,196 @@ public class PositionController : Controller
             var positions = await _context.Positions
                 .Include(p => p.PositionTopics)
                     .ThenInclude(pt => pt.Topic)
+                        .ThenInclude(t => t.Questions)
+                            .ThenInclude(q => q.Answers)
                 .ToListAsync();
 
-            foreach (var position in positions)
-            {
-                position.PositionTopics = position.PositionTopics
-                    .GroupBy(pt => pt.TopicId)
-                    .Select(g => g.First())
-                    .ToList();
-            }
+            ViewBag.AllTopics = await _context.Topics
+                .Include(t => t.Questions)
+                    .ThenInclude(q => q.Answers)
+                .ToListAsync();
 
             return View(positions);
         }
         catch
         {
-            ModelState.AddModelError("", "An error occurred while retrieving the positions. Please try again.");
+            ModelState.AddModelError("", "An error occurred while retrieving positions.");
             return View(new List<Position>());
         }
     }
 
     [HttpPost]
-    public async Task<IActionResult> StartInterview(int positionId, int topicId, bool isMock)
+    [Authorize(Roles = "HR,Admin")]
+    public async Task<IActionResult> CreatePosition(string Name, List<int> Topics)
     {
-        var userId = _userManager.GetUserId(User);
-
-        if (userId == null)
+        if (string.IsNullOrWhiteSpace(Name))
         {
-            return Unauthorized();
+            ModelState.AddModelError("", "Position name is required.");
+            return RedirectToAction("Index");
         }
 
-        var interviewSession = new InterviewSession
-        {
-            PositionId = positionId,
-            TopicId = topicId,
-            IsMock = isMock,
-            UserId = userId,
-            StartedAt = DateTime.UtcNow
-        };
+        var newPosition = new Position { Name = Name, PositionTopics = new List<PositionTopic>() };
 
-        _context.InterviewSessions.Add(interviewSession);
+        foreach (var topicId in Topics)
+        {
+            newPosition.PositionTopics.Add(new PositionTopic { TopicId = topicId });
+        }
+
+        _context.Positions.Add(newPosition);
         await _context.SaveChangesAsync();
 
-        return RedirectToAction("Index", "InterviewSession", new { sessionId = interviewSession.Id });
-    }
-
-    [Authorize(Roles = "HR,Admin")]
-    public IActionResult Create()
-    {
-        return View();
+        TempData["Message"] = "Position created successfully!";
+        return RedirectToAction("Index");
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     [Authorize(Roles = "HR,Admin")]
-    public async Task<IActionResult> Create(Position position, List<int> Topics)
+    public async Task<IActionResult> EditPosition(int id, string Name, List<int> Topics)
     {
-        if (!ModelState.IsValid)
-        {
-            return View(position);
-        }
-
-        if (Topics != null && Topics.Any())
-        {
-            position.PositionTopics = Topics.Select(topicId => new PositionTopic
-            {
-                PositionId = position.Id,
-                TopicId = topicId
-            }).ToList();
-        }
-
-        _context.Add(position);
-        await _context.SaveChangesAsync();
-        TempData["Message"] = "Position added successfully!";
-        return RedirectToAction(nameof(Index));
-    }
-
-    [Authorize(Roles = "HR,Admin")]
-    public async Task<IActionResult> Edit(int? id)
-    {
-        if (id == null) return NotFound();
-
-        var position = await _context.Positions.FindAsync(id);
-        if (position == null) return NotFound();
-
-        return View(position);
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    [Authorize(Roles = "HR,Admin")]
-    public async Task<IActionResult> Edit(int id, Position position, List<int> Topics)
-    {
-        if (id != position.Id) return NotFound();
-
-        if (!ModelState.IsValid)
-        {
-            return View(position);
-        }
-
-        var existingPosition = await _context.Positions
+        var position = await _context.Positions
             .Include(p => p.PositionTopics)
             .FirstOrDefaultAsync(p => p.Id == id);
 
-        if (existingPosition == null) return NotFound();
+        if (position == null) return NotFound();
 
-        existingPosition.Name = position.Name;
+        position.Name = Name;
+        position.PositionTopics.Clear();
 
-        existingPosition.PositionTopics.Clear();
-        if (Topics != null && Topics.Any())
+        foreach (var topicId in Topics)
         {
-            existingPosition.PositionTopics = Topics.Select(topicId => new PositionTopic
-            {
-                PositionId = position.Id,
-                TopicId = topicId
-            }).ToList();
+            position.PositionTopics.Add(new PositionTopic { TopicId = topicId });
         }
 
-        _context.Update(existingPosition);
         await _context.SaveChangesAsync();
         TempData["Message"] = "Position updated successfully!";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction("Index");
     }
 
-    [HttpPost]       
-    [ValidateAntiForgeryToken]
+    [HttpPost]
     [Authorize(Roles = "HR,Admin")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> EditTopic(
+        int id, string Name,
+        Dictionary<int, string> Questions,
+        Dictionary<int, string> Answers,
+        string NewQuestion,
+        string NewAnswerText,
+        int? NewAnswerQuestionId)
     {
-        var position = await _context.Positions.FindAsync(id);
-        if (position != null)
+        var topic = await _context.Topics
+            .Include(t => t.Questions)
+                .ThenInclude(q => q.Answers)
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (topic == null) return NotFound();
+
+        topic.Name = Name;
+
+        foreach (var question in topic.Questions)
         {
-            _context.Positions.Remove(position);
-            await _context.SaveChangesAsync();
+            if (Questions.TryGetValue(question.Id, out var newText))
+            {
+                question.QuestionText = newText;
+            }
+
+            foreach (var answer in question.Answers)
+            {
+                if (Answers.TryGetValue(answer.Id, out var answerText))
+                {
+                    answer.AnswerText = answerText;
+                }
+            }
         }
 
-        return RedirectToAction(nameof(Index));
+        if (!string.IsNullOrWhiteSpace(NewQuestion))
+        {
+            topic.Questions.Add(new Question
+            {
+                QuestionText = NewQuestion
+            });
+        }
+
+        if (!string.IsNullOrWhiteSpace(NewAnswerText) && NewAnswerQuestionId.HasValue)
+        {
+            var questionToUpdate = topic.Questions.FirstOrDefault(q => q.Id == NewAnswerQuestionId.Value);
+            if (questionToUpdate != null)
+            {
+                questionToUpdate.Answers.Add(new Answer { AnswerText = NewAnswerText });
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        TempData["Message"] = "Topic updated successfully!";
+        return RedirectToAction("Index");
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "HR,Admin")]
+    public async Task<IActionResult> DeleteQuestion(int questionId)
+    {
+        var question = await _context.Questions
+            .Include(q => q.Answers)
+            .FirstOrDefaultAsync(q => q.Id == questionId);
+
+        if (question == null) return NotFound();
+
+        _context.Questions.Remove(question);
+        await _context.SaveChangesAsync();
+
+        TempData["Message"] = "Question deleted successfully!";
+        return RedirectToAction("Index");
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "HR,Admin")]
+    public async Task<IActionResult> DeleteAnswer(int answerId)
+    {
+        var answer = await _context.Answers.FindAsync(answerId);
+        if (answer == null) return NotFound();
+
+        _context.Answers.Remove(answer);
+        await _context.SaveChangesAsync();
+
+        TempData["Message"] = "Answer deleted successfully!";
+        return RedirectToAction("Index");
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "HR,Admin")]
+    public async Task<IActionResult> CreateTopic(string Name, Dictionary<int, string> Questions, Dictionary<int, Dictionary<int, string>> Answers)
+    {
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            ModelState.AddModelError("", "Topic name is required.");
+            return RedirectToAction("Index");
+        }
+
+        var newTopic = new Topic { Name = Name, Questions = new List<Question>() };
+
+        foreach (var questionEntry in Questions)
+        {
+            var questionText = questionEntry.Value;
+            if (string.IsNullOrWhiteSpace(questionText)) continue;
+
+            var newQuestion = new Question { QuestionText = questionText, Answers = new List<Answer>() };
+
+            if (Answers.TryGetValue(questionEntry.Key, out var answers))
+            {
+                foreach (var answerEntry in answers)
+                {
+                    if (!string.IsNullOrWhiteSpace(answerEntry.Value))
+                    {
+                        newQuestion.Answers.Add(new Answer { AnswerText = answerEntry.Value });
+                    }
+                }
+            }
+
+            newTopic.Questions.Add(newQuestion);
+        }
+
+        _context.Topics.Add(newTopic);
+        await _context.SaveChangesAsync();
+
+        TempData["Message"] = "Topic created successfully!";
+        return RedirectToAction("Index");
     }
 }

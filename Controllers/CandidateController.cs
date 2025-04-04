@@ -1,26 +1,32 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
+﻿namespace InterviewPortal.Controllers;
 
-namespace InterviewPortal.Controllers;
-[Authorize(Roles = "Candidate")]
+[Authorize]
 public class CandidateController : Controller
 {
     private readonly InterviewPortalDbContext _context;
     private readonly UserManager<User> _userManager;
+
     public CandidateController(InterviewPortalDbContext context, UserManager<User> userManager)
     {
         _context = context;
         _userManager = userManager;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        return View();
+        var positions = await _context.Positions.ToListAsync();
+
+        if (positions == null || !positions.Any())
+        {
+            Console.WriteLine("No positions were found in the database.");
+        }
+
+        return View(positions);
     }
 
     public IActionResult ApplyPosition(int id)
     {
-        return View();
+        return View(id);
     }
 
     [Microsoft.AspNetCore.Mvc.Route("Candidate/ApplyPosition/{id}/{type}")]
@@ -28,6 +34,7 @@ public class CandidateController : Controller
     {
         ViewData["PositionId"] = id;
         ViewData["InterviewType"] = type;
+
         return View("InterviewStart");
     }
 
@@ -38,33 +45,27 @@ public class CandidateController : Controller
 
         if (string.IsNullOrEmpty(userId))
         {
-            return Unauthorized("User not authenticated or user ID not available.");
+            return Unauthorized("User not authenticated.");
         }
 
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return Unauthorized("User not found in the database.");
-            }
-            userId = user.Id;
+            return Unauthorized("User not found.");
         }
 
         bool isMock = type.ToLower() == "mock";
 
         var positionTopic = await _context.PositionTopics
-        .Where(pt => pt.PositionId == id)
-        .Include(pt => pt.Topic)
-        .FirstOrDefaultAsync();
+            .Where(pt => pt.PositionId == id)
+            .Include(pt => pt.Topic)
+            .FirstOrDefaultAsync();
 
         if (positionTopic == null)
         {
             return NotFound("No topics available for this position.");
         }
 
-        // Create the interview session
         var session = new InterviewSession
         {
             UserId = userId,
@@ -74,11 +75,8 @@ public class CandidateController : Controller
             StartedAt = DateTime.Now
         };
 
-        if (!isMock || (isMock))
-        {
-            _context.InterviewSessions.Add(session);
-            await _context.SaveChangesAsync();
-        }
+        _context.InterviewSessions.Add(session);
+        await _context.SaveChangesAsync();
 
         return RedirectToAction("Index", "InterviewSession", new { sessionId = session.Id });
     }
