@@ -17,6 +17,7 @@ public class PositionController : Controller
         try
         {
             var positions = await _context.Positions
+                .Where(p => p.IsActive)
                 .Include(p => p.PositionTopics)
                     .ThenInclude(pt => pt.Topic)
                         .ThenInclude(t => t.Questions)
@@ -33,6 +34,7 @@ public class PositionController : Controller
         catch
         {
             ModelState.AddModelError("", "An error occurred while retrieving positions.");
+            ViewBag.AllTopics = new List<Topic>();
             return View(new List<Position>());
         }
     }
@@ -94,82 +96,88 @@ public class PositionController : Controller
         Dictionary<int, int> Difficulty,
         Dictionary<int, Dictionary<int, string>> NewAnswers,
         Dictionary<int, Dictionary<int, string>> IsCorrect)
+    {
+        var topic = await _context.Topics
+            .Include(t => t.Questions)
+                .ThenInclude(q => q.Answers)
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (topic == null) return NotFound();
+
+        topic.Name = Name;
+
+        Questions = Questions ?? new Dictionary<int, string>();
+        Answers = Answers ?? new Dictionary<int, string>();
+        Difficulty = Difficulty ?? new Dictionary<int, int>();
+        NewAnswers = NewAnswers ?? new Dictionary<int, Dictionary<int, string>>();
+        IsCorrect = IsCorrect ?? new Dictionary<int, Dictionary<int, string>>();
+
+        // Update existing questions and answers
+        foreach (var question in topic.Questions)
         {
-            var topic = await _context.Topics
-                .Include(t => t.Questions)
-                    .ThenInclude(q => q.Answers)
-                .FirstOrDefaultAsync(t => t.Id == id);
-
-            if (topic == null) return NotFound();
-
-            topic.Name = Name;
-
-            // Update existing questions and answers
-            foreach (var question in topic.Questions)
+            if (Questions.TryGetValue(question.Id, out var newText))
             {
-                if (Questions.TryGetValue(question.Id, out var newText))
-                {
-                    question.QuestionText = newText;
-                }
-
-                foreach (var answer in question.Answers)
-                {
-                    if (Answers.TryGetValue(answer.Id, out var answerText))
-                    {
-                        answer.AnswerText = answerText;
-                    }
-                }
+                question.QuestionText = newText;
             }
 
-            // Handle new questions
-            foreach (var questionEntry in NewAnswers ?? new Dictionary<int, Dictionary<int, string>>())
+            foreach (var answer in question.Answers)
             {
-                int questionIdx = questionEntry.Key;
-
-                // Check if we have a question text for this index
-                if (Questions.TryGetValue(questionIdx, out var questionText) && !string.IsNullOrWhiteSpace(questionText))
+                if (Answers.TryGetValue(answer.Id, out var answerText))
                 {
-                    // Get difficulty level
-                    QuestionDifficultyLevel difficultyLevel = QuestionDifficultyLevel.Easy;
-                    if (Difficulty != null && Difficulty.TryGetValue(questionIdx, out var diffValue))
-                    {
-                        difficultyLevel = (QuestionDifficultyLevel)diffValue;
-                    }
+                    answer.AnswerText = answerText;
+                }
+            }
+        }
 
-                    var newQuestion = new Question
-                    {
-                        QuestionText = questionText,
-                        Difficulty = difficultyLevel,
-                        Answers = new List<Answer>()
-                    };
+        // Handle new questions
+        foreach (var questionEntry in NewAnswers ?? new Dictionary<int, Dictionary<int, string>>())
+        {
+            int questionIdx = questionEntry.Key;
 
-                    // Add answers to the new question
-                    if (questionEntry.Value != null)
+            // Check if we have a question text for this index
+            if (Questions.TryGetValue(questionIdx, out var questionText) && !string.IsNullOrWhiteSpace(questionText))
+            {
+                // Get difficulty level
+                QuestionDifficultyLevel difficultyLevel = QuestionDifficultyLevel.Easy;
+                if (Difficulty != null && Difficulty.TryGetValue(questionIdx, out var diffValue))
+                {
+                    difficultyLevel = (QuestionDifficultyLevel)diffValue;
+                }
+
+                var newQuestion = new Question
+                {
+                    QuestionText = questionText,
+                    Difficulty = difficultyLevel,
+                    Answers = new List<Answer>()
+                };
+
+                // Add answers to the new question
+                if (questionEntry.Value != null)
+                {
+                    foreach (var answerEntry in questionEntry.Value)
                     {
-                        foreach (var answerEntry in questionEntry.Value)
+                        if (!string.IsNullOrWhiteSpace(answerEntry.Value))
                         {
-                            if (!string.IsNullOrWhiteSpace(answerEntry.Value))
+                            bool isCorrect = false;
+
+                            if (IsCorrect != null &&
+                                IsCorrect.TryGetValue(questionIdx, out var correctAnswers) &&
+                                correctAnswers.ContainsKey(answerEntry.Key))
                             {
-                                bool isCorrect = false;
-
-                                if (IsCorrect != null &&
-                                    IsCorrect.TryGetValue(questionIdx, out var correctAnswers) &&
-                                    correctAnswers.ContainsKey(answerEntry.Key))
-                                {
-                                    isCorrect = true;
-                                }
-
-                                newQuestion.Answers.Add(new Answer
-                                {
-                                    AnswerText = answerEntry.Value,
-                                    IsCorrect = isCorrect
-                                });
+                                isCorrect = true;
                             }
+
+                            newQuestion.Answers.Add(new Answer
+                            {
+                                AnswerText = answerEntry.Value,
+                                IsCorrect = isCorrect
+                            });
                         }
                     }
+                }
 
-                // Add the new question to the topic
-                topic.Questions.Add(newQuestion);
+            // Add the new question to the topic
+            topic.Questions.Add(newQuestion);
             }
         }
 
