@@ -1,0 +1,80 @@
+﻿@model InterviewPortal.Models.InterviewSession
+@{
+    ViewData["Title"] = Model.IsMock ? "Mock Interview Results" : "Interview Submitted";
+    bool showCorrectAnswers = (bool)ViewData["ShowCorrectAnswers"];
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/candidate-dashboard.css" />
+    <link rel="stylesheet" href="~/css/interview-results.css" />
+}
+
+<div class="results-container">
+    <div class="results-header">
+        @if (Model.IsMock)
+        {
+            <h1>Mock Interview Results</h1>
+        }
+        else
+        {
+            <h1>Interview Submitted</h1>
+        }
+    </div>
+
+    <div class="position-info">
+        <h2>Position: @Model.Position.Name</h2>
+    </div>
+
+    <div class="result-image-container">
+        @if (Model.IsMock)
+        {
+            <img src="~/images/mock-interview-result.png" alt="Mock Interview Complete" class="result-image mock-result-image" />
+        }
+        else
+        {
+            <img src="~/images/real-interview-complete.png" alt="Interview Submitted" class="result-image real-result-image" />
+        }
+    </div>
+
+    @if (Model.IsMock)
+    {
+        <div class="score-container">
+            <h3>Your Result</h3>
+            <p class="score-text">
+                You answered @ViewData["CorrectAnswers"] out of @Model.Topic.Questions.Count questions correctly.
+            </p>
+        </div>
+
+        <div class="mock-instructions">
+            <h3>What's Next?</h3>
+            <p>This was a practice interview. Feel free to try again to improve your score!</p>
+            <div class="action-buttons">
+                <a href="/Candidate/ApplyPosition/@Model.PositionId/mock">Try Again</a>
+                <a href="/Candidate/ApplyPosition/@Model.PositionId">Back to Interview Selection</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="real-submission-info">
+            <div class="submission-message">
+                <h3>Thank You for Your Submission</h3>
+                <p>Your interview has been successfully submitted and will be reviewed by our team.</p>
+                <p>You will be notified about the next steps in the application process.</p>
+            </div>
+
+            <div class="next-steps">
+                <h3>What's Next?</h3>
+                <ul>
+                    <li>Our recruiters will review your application and interview responses</li>
+                    <li>You'll receive feedback within 5-7 business days</li>
+                    <li>If selected, you'll be invited for the next round of interviews</li>
+                </ul>
+            </div>
+
+            <div class="action-buttons">
+                <a href="/">Return to Main Page</a>
+            </div>
+        </div>
+    }
+</div>

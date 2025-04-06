@@ -1,0 +1,145 @@
+﻿.button-wrapper {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 20px;
+}
+
+.add-btn {
+    margin: 10px 0 10px;
+}
+
+    .add-btn:active {
+        border: none;
+    }
+
+.header-wrapper {
+    margin: 10px 0 10px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 20px;
+}
+
+.topic-name {
+    font-size: 20px;
+    font-weight: 400;
+}
+
+.button-edit {
+    border: 1px solid var(--green-color);
+    padding: 3px 20px;
+    margin: 0;
+}
+
+    .button-edit:hover {
+        background-color: var(--green-color);
+        color: var(--primary-color);
+    }
+
+.question-wrapper {
+    margin-bottom: 15px;
+}
+
+.position-name-wrapper {
+    display: flex;
+    gap: 20px;
+    justify-content: flex-start;
+}
+
+.answer {
+    color: red;
+}
+
+
+.form-check-input {
+    border-radius: 50%;
+    border: 1px solid var(--dark-gray-color);
+}
+
+.form-check-input:focus {
+    outline: none;
+    box-shadow: none;
+    background-color: var(--primary-color);
+    border-color: var(--dark-gray-color);
+}
+
+.form-check-input:checked {
+    background-color: var(--accent-color);
+    border-color: var(--primary-color);
+}
+
+.btn-save {
+    color: var(--primary-color);
+    background-color: var(--accent-color);
+}
+
+    .btn-save:hover {
+        color: var(--primary-color);
+        background-color: #c82333;
+    }
+
+    .btn-save:active {
+        border: none;
+    }
+
+.attention-text {
+    color: var(--accent-color);
+}
+
+
+.diff-wrapper {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 7px;
+}
+
+.difficulty-badge {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.easy-badge {
+    background-color: var(--green-color);
+}
+
+.medium-badge {
+    background-color: var(--yellow-color);
+}
+
+.hard-badge {
+    background-color: var(--accent-shadow-color);
+}
+
+select[name^="Difficulty"]:active,
+select[name^="Difficulty"]:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: #ced4da !important;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-start;
+    margin-bottom: 10px;
+}
+
+.delete-btn-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.delete-btn {
+    background-color: var(--accent-color);
+    color: var(--primary-color);
+}
+
+    .delete-btn:hover {
+        background-color: #c82333;
+    }

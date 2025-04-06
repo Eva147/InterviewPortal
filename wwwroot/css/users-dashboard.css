@@ -72,12 +72,19 @@ tr:hover {
         color: #007bff;
     }
 
-.actions a {
+.actions a, button {
     color: var(--primary-color);
+    border: none;
     padding: 5px 10px;
+    margin-bottom: 10px;
     border-radius: 5px;
     font-size: 14px;
     text-decoration: none;
+}
+
+.button-wrapper {
+    display: flex;
+    gap: 15px;
 }
 
 .actions .btn-edit {
@@ -100,6 +107,8 @@ tr:hover {
     text-align: center;
     padding: 20px;
     color: #888;
+<<<<<<< HEAD:wwwroot/css/users-dashboard.css
+=======
 }
 @media (max-width: 768px) {
     .filter-form
@@ -127,4 +136,5 @@ th, td {
 
 body {
     padding: 0px; 
+>>>>>>> 6064198e63ed1d7353356e67c9548902b22b58e4:wwwroot/css/admin-dashboard.css
 }

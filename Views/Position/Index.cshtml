@@ -4,221 +4,300 @@
     var allTopics = ViewBag.AllTopics as List<InterviewPortal.Models.Topic>;
 }
 
-<h2 class="mb-4">Manage Positions</h2>
+@section Styles {
+    <link rel="stylesheet" href="~/css/positions-dashboard.css" />
+}
 
 @if (TempData["Message"] != null)
 {
     <div class="alert alert-success">@TempData["Message"]</div>
 }
+<title>Manage Positions</title>
+<div class="container">
+    <h1>Positions</h1>
+    <div class="button-wrapper">
+        <!-- Create Position Button -->
+        <button class="btn btn-success add-btn" data-bs-toggle="modal" data-bs-target="#createPositionModal">Add Position</button>
 
-<!-- Create Position Button -->
-<button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createPositionModal">Add Position</button>
-
-<!-- Create Topic Button -->
-<button class="btn btn-secondary mb-3 ms-2" data-bs-toggle="modal" data-bs-target="#createTopicModal">Add Topic</button>
-
-@foreach (var position in Model)
-{
-    <div class="card mb-4 shadow-sm">
-        <div class="card-body">
-            <h4 class="card-title">@position.Name</h4>
-
-            <button class="btn btn-sm btn-outline-primary mb-2" data-bs-toggle="modal" data-bs-target="#editPositionModal_@position.Id">Edit Position</button>
-
-            <h5>Topics:</h5>
-            @foreach (var pt in position.PositionTopics)
-            {
-                <div class="border p-2 mb-2">
-                    <strong>@pt.Topic.Name</strong>
-                    <button class="btn btn-sm btn-link text-decoration-none" data-bs-toggle="modal" data-bs-target="#editTopicModal_@pt.Topic.Id">Edit</button>
-
-                    <ul>
-                        @foreach (var q in pt.Topic.Questions)
-                        {
-                            <li>
-                                <strong>Q:</strong> @q.QuestionText
-                                <ul>
-                                    @foreach (var a in q.Answers)
-                                    {
-                                        <li><strong>A:</strong> @a.AnswerText</li>
-                                    }
-                                </ul>
-                            </li>
-                        }
-                    </ul>
-                </div>
-            }
-        </div>
+        <!-- Create Topic Button -->
+        <button class="btn btn-success add-btn" data-bs-toggle="modal" data-bs-target="#createTopicModal">Add Topic</button>
     </div>
+    
+    @foreach (var position in Model)
+    {
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <div class="position-name-wrapper">
+                    <h3 class="card-title mb-0">@position.Name</h3>
 
-    <!-- Edit Position Modal -->
-    <div class="modal fade" id="editPositionModal_@position.Id" tabindex="-1" aria-labelledby="editPositionLabel_@position.Id" aria-hidden="true">
+                    <button class="btn button-edit" data-bs-toggle="modal" data-bs-target="#editPositionModal_@position.Id">Edit</button>
+                </div>
+               
+                <h5 class="mt-2">Topics:</h5>
+                @foreach (var pt in position.PositionTopics)
+                {
+                    <div class="border p-2 mb-2 rounded">
+                        <div class="header-wrapper">
+                            <div class="topic-name">@pt.Topic.Name</div>
+                            <button class="btn text-decoration-none button-edit" data-bs-toggle="modal" data-bs-target="#editTopicModal_@pt.Topic.Id">Edit</button>
+                        </div>
+                        
+                        <ul>
+                            @foreach (var q in pt.Topic.Questions)
+                            {
+                                <li class="question-wrapper">
+                                    <div class="diff-wrapper">
+                                        <div class="difficulty-badge @(q.Difficulty.ToString().ToLower())-badge"></div>
+                                        <div><strong>@q.QuestionText</strong></div>
+                                    </div>
+                                    <ul>
+                                        @foreach (var a in q.Answers)
+                                        {
+											if (a.IsCorrect)
+											{
+                                                <li><span class="attention-text"><strong>Correct A:</strong></span> @a.AnswerText</li>
+											}
+											else
+											{
+                                                <li><strong>A:</strong>@a.AnswerText</li>
+											}
+                                        }
+                                    </ul>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Edit Position Modal -->
+        <div class="modal fade" id="editPositionModal_@position.Id" tabindex="-1" aria-labelledby="editPositionLabel_@position.Id" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form asp-action="EditPosition" method="post">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Position - @position.Name</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="id" value="@position.Id" />
+                            <div class="mb-3">
+                                <label class="form-label">Name</label>
+                                <input class="form-control" name="Name" value="@position.Name" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Topics</label>
+                                @foreach (var topic in allTopics)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="Topics" value="@topic.Id"
+                                        @(position.PositionTopics.Any(pt => pt.TopicId == topic.Id) ? "checked" : "") />
+                                        <label class="form-check-label">@topic.Name</label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-success" type="submit">Save</button>
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Create Position Modal -->
+    <div class="modal fade" id="createPositionModal" tabindex="-1" aria-labelledby="createPositionLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form asp-action="EditPosition" method="post">
+                <form asp-action="CreatePosition" method="post">
                     <div class="modal-header">
-                        <h5 class="modal-title">Edit Position - @position.Name</h5>
+                        <h5 class="modal-title">Create New Position</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <input type="hidden" name="id" value="@position.Id" />
                         <div class="mb-3">
-                            <label class="form-label">Name</label>
-                            <input class="form-control" name="Name" value="@position.Name" required />
+                            <label class="form-label">Position Name</label>
+                            <input class="form-control" name="Name" required />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Topics</label>
+                            <label class="form-label">Select Topics</label>
                             @foreach (var topic in allTopics)
                             {
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="Topics" value="@topic.Id"
-                                    @(position.PositionTopics.Any(pt => pt.TopicId == topic.Id) ? "checked" : "") />
+                                    <input class="form-check-input" type="checkbox" name="Topics" value="@topic.Id" />
                                     <label class="form-check-label">@topic.Name</label>
                                 </div>
                             }
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-primary" type="submit">Save</button>
+                        <button class="btn btn-success" type="submit">Create</button>
                         <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-}
 
-<!-- Create Position Modal -->
-<div class="modal fade" id="createPositionModal" tabindex="-1" aria-labelledby="createPositionLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form asp-action="CreatePosition" method="post">
-                <div class="modal-header">
-                    <h5 class="modal-title">Create New Position</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Position Name</label>
-                        <input class="form-control" name="Name" required />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Select Topics</label>
-                        @foreach (var topic in allTopics)
-                        {
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="Topics" value="@topic.Id" />
-                                <label class="form-check-label">@topic.Name</label>
-                            </div>
-                        }
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-success" type="submit">Create</button>
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Create Topic Modal -->
-<div class="modal fade" id="createTopicModal" tabindex="-1" aria-labelledby="createTopicLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form asp-action="CreateTopic" method="post">
-                <div class="modal-header">
-                    <h5 class="modal-title">Create New Topic</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label>Topic Name</label>
-                        <input class="form-control" name="Name" required />
-                    </div>
-                    <div id="questionContainer">
-                        <div class="question-block border p-2 mb-2">
-                            <label>Question:</label>
-                            <input class="form-control mb-2" name="Questions[0]" />
-                            <label>Answers:</label>
-                            <div id="answersContainer_0">
-                                <input class="form-control mb-1" name="Answers[0][0]" />
-                            </div>
-                            <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addAnswer(0)">+ Add Answer</button>
-                        </div>
-                    </div>
-
-                    <button type="button" class="btn btn-outline-secondary" onclick="addQuestion()">+ Add Question</button>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-success" type="submit">Create Topic</button>
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Topic Modals (TODO: Incomplete) --> 
-@* @foreach (var topic in allTopics)
-{
-    <div class="modal fade" id="editTopicModal_@topic.Id" tabindex="-1" aria-labelledby="editTopicLabel_@topic.Id" aria-hidden="true">
+    <!-- Add Topic Modal -->
+    <div class="modal fade" id="createTopicModal" tabindex="-1" aria-labelledby="createTopicLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <form asp-action="EditTopic" method="post">
+                <form asp-action="CreateTopic" method="post">
                     <div class="modal-header">
-                        <h5 class="modal-title">Edit Topic - @topic.Name</h5>
+                        <h5 class="modal-title">Create New Topic</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <input type="hidden" name="id" value="@topic.Id" />
                         <div class="mb-3">
                             <label>Topic Name</label>
-                            <input class="form-control" name="Name" value="@topic.Name" required />
+                            <input class="form-control" name="Name" required />
                         </div>
-                        @foreach (var question in topic.Questions)
-                        {
-                            <div class="question-block border p-2 mb-3">
-                                <input type="hidden" name="Questions[@question.Id]" value="@question.QuestionText" />
+
+                        <div id="questionContainer">
+                            <div class="question-block border p-2 mb-2">
                                 <label>Question:</label>
-                                <input class="form-control mb-2" name="Questions[@question.Id]" value="@question.QuestionText" />
+                                <input class="form-control mb-2" name="Questions[0]" />
 
+                                <label>Difficulty Level:</label>
+                                <select class="form-select mb-2" name="Difficulty[0]">
+                                    <option value="0">Easy</option>
+                                    <option value="1">Medium</option>
+                                    <option value="2">Hard</option>
+                                </select>
 
-                                <label>Answers:</label>
-                                @foreach (var answer in question.Answers)
-                                {
+                                <label>Answers (select one correct answer):</label>
+                                <div id="answersContainer_0">
                                     <div class="input-group mb-1">
-                                        <input class="form-control" name="Answers[@answer.Id]" value="@answer.AnswerText" />
+                                        <div class="input-group-text">
+                                            <input type="checkbox" class="form-check-input answer-checkbox" data-question="0" name="IsCorrect[0][0]" value="true" aria-lael="Is correct?" />
+                                        </div>
+                                        <input class="form-control" name="Answers[0][0]" placeholder="Enter answer" />
                                     </div>
-                                }
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addAnswer(0)">+ Add Answer</button>
                             </div>
-                        }
-                        <hr />
-                        <h5>Add New Question</h5>
-                        <input class="form-control mb-2" name="NewQuestion" />
-                        <h6>Add Answer to Existing Question</h6>
-                        <select class="form-select mb-2" name="NewAnswerQuestionId">
-                            <option value="">-- Select Question --</option>
-                            @foreach (var question in topic.Questions)
-                            {
-                                <option value="@question.Id">@question.QuestionText</option>
-                            }
-                        </select>
-                        <input class="form-control mb-2" name="NewAnswerText" placeholder="New Answer Text" />
+                        </div>
+
+
+
+                        <button type="button" class="btn btn-outline-secondary" onclick="addQuestion()">+ Add Question</button>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-primary" type="submit">Save</button>
+                        <button class="btn btn-success" type="submit">Create Topic</button>
                         <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-}
- *@
+    @* ---------------------------------------------------------------------------------------------------------------------- *@
+    <!-- Edit Topic Modals -->
+    @foreach (var topic in allTopics)
+    {
+        <div class="modal fade" id="editTopicModal_@topic.Id" tabindex="-1" aria-labelledby="editTopicLabel_@topic.Id" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <form asp-action="EditTopic" method="post">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Topic - @topic.Name</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="id" value="@topic.Id" />
+                            <div class="mb-3">
+                                <label>Topic Name</label>
+                                <input class="form-control" name="Name" value="@topic.Name" required />
+                            </div>
+                            @foreach (var question in topic.Questions)
+                            {
+                                <div class="question-block border p-2 mb-3">
+                                    <input type="hidden" name="Questions[@question.Id]" value="@question.QuestionText" />
+                                    <label>Question:</label>
+                                    <input class="form-control mb-2" name="Questions[@question.Id]" value="@question.QuestionText" />
+
+
+                                    <label>Answers:</label>
+                                    @foreach (var answer in question.Answers)
+                                    {
+                                        <div class="input-wrapper">
+                                            @if (@answer.IsCorrect)
+                                            {
+                                            <div><span class="attention-text"><strong>Correct:</strong></span></div>
+                                            }
+                                            <input class="form-control answer-text" name="Answers[@answer.Id]" value="@answer.AnswerText" />
+                                        </div>
+                                    }
+                                    <div class="delete-btn-wrapper">
+                                        <button type="button" class="delete-btn delete-question-btn" data-question-id="@question.Id">Delete question</button>
+                                    </div>
+                                    
+                                </div>
+                            }
+                            <form id="deleteQuestionForm" method="post" asp-action="DeleteQuestion" style="display:none;">
+                                <input type="hidden" id="questionIdToDelete" name="questionId" value="" />
+                                @Html.AntiForgeryToken()
+                            </form>
+                            <hr />
+
+                            <h6>Add New Questions</h6>
+                            <div id="newQuestionContainer_@topic.Id" class="new-question-container">
+                                <div class="question-block border p-2 mb-2">
+                                    <label>Question Text:</label>
+                                    <input class="form-control mb-2" name="Questions[0]" />
+
+                                    <label>Difficulty Level:</label>
+                                    <select class="form-select mb-2" name="Difficulty[0]">
+                                        <option value="0">Easy</option>
+                                        <option value="1">Medium</option>
+                                        <option value="2">Hard</option>
+                                    </select>
+
+                                    <label>Answers (select one correct answer):</label>
+                                    <div id="newAnswersContainer_@topic.Id@("_0")" class="new-answers-container">
+                                        <div class="input-group mb-1">
+                                            <div class="input-group-text">
+                                                <input type="checkbox" class="form-check-input answer-checkbox"
+                                                       data-topic="@topic.Id" data-question="0"
+                                                       name="IsCorrect[0][0]" value="true" />
+                                            </div>
+                                            <input class="form-control" name="NewAnswers[0][0]" placeholder="Enter answer" />
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btnbtn-outline-secondary mt-1"
+                                        onclick="addNewAnswer(@topic.Id, 0)"
+                                    >
+                                        + Add Answer
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-outline-secondary"
+                                    onclick="addNewQuestion(@topic.Id)">
+                                + Add Another Question
+                            </button>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button class="btn btn-success" type="submit">Save</button>
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+    </div>
+
 
 @section Scripts {
     <script>
+		// Function to add new question in the Create Topic modal
         let questionIndex = 0;
 
         function addQuestion() {
@@ -229,9 +308,22 @@
             block.innerHTML = `
                 <label>Question:</label>
                 <input class="form-control mb-2" name="Questions[${questionIndex}]" />
-                <label>Answers:</label>
+
+                <label>Difficulty Level:</label>
+                    <select class="form-select mb-2" name="Difficulty[${questionIndex}]">
+                        <option value="0">Easy</option>
+                        <option value="1">Medium</option>
+                        <option value="2">Hard</option>
+                    </select>
+
+                <label>Answers (select one correct answer)</label>
                 <div id="answersContainer_${questionIndex}">
-                    <input class="form-control mb-1" name="Answers[${questionIndex}][0]" />
+                    <div class="input-group mb-1">
+                        <div class="input-group-text">
+                            <input type="checkbox" class="form-check-input answer-checkbox" data-question="${questionIndex}" name="IsCorrect[${questionIndex}][0]" value="true" aria-label="Is answer correct?" />
+                        </div>
+                        <input class="form-control" name="Answers[${questionIndex}][0]" placeholder="Enter answer" />
+                    </div>
                 </div>
                 <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addAnswer(${questionIndex})">+ Add Answer</button>
             `;
@@ -241,29 +333,222 @@
         function addAnswer(questionId) {
             const container = document.getElementById(`answersContainer_${questionId}`);
             const answerIndex = container.children.length;
-            const input = document.createElement("input");
-            input.className = "form-control mb-1";
-            input.name = `Answers[${questionId}][${answerIndex}]`;
 
-            container.appendChild(input);
+            const answerGroup = document.createElement("div");
+            answerGroup.className = "input-group mb-1";
+            answerGroup.innerHTML = `
+                <div class="input-group-text">
+                    <input type="checkbox" class="form-check-input answer-checkbox" data-question="${questionId}" name="IsCorrect[${questionId}][${answerIndex}]" value="true" aria-label="Is answer correct?" />
+                </div>
+                <input class="form-control" name="Answers[${questionId}][${answerIndex}]" placeholder="Enter answer" />
+            `;
+
+            container.appendChild(answerGroup);
         }
 
-        document.getElementById("createTopicModal").addEventListener("hidden.bs.modal", function () {
-            const container = document.getElementById("questionContainer");
-            container.innerHTML = `
-                <div class="question-block border p-2 mb-2">
-                    <label>Question:</label>
-                    <input class="form-control mb-2" name="Questions[0]" />
-                    <label>Answers:</label>
-                    <div id="answersContainer_0">
-                        <input class="form-control mb-1" name="Answers[0][0]" />
-                    </div>
-                    <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addAnswer(0)">+ Add Answer</button>
-                </div>
-            `;
-            questionIndex = 0;
-        });
+		// Function to add new question in the Edit Topic modal
+        const newQuestionCounters = {};
 
+        function addNewQuestion(topicId) {
+            if (!newQuestionCounters[topicId]) {
+                newQuestionCounters[topicId] = 0;
+            } else {
+                newQuestionCounters[topicId]++;
+            }
+
+            const questionIdx = newQuestionCounters[topicId];
+            const container = document.getElementById(`newQuestionContainer_${topicId}`);
+
+            const block = document.createElement("div");
+            block.className = "question-block border p-2 mb-2";
+            block.innerHTML = `
+                <label>Question Text:</label>
+                <input class="form-control mb-2" name="Questions[${questionIdx}]" />
+
+                <label>Difficulty Level:</label>
+                <select class="form-select mb-2" name="Difficulty[${questionIdx}]">
+                    <option value="0">Easy</option>
+                    <option value="1">Medium</option>
+                    <option value="2">Hard</option>
+                </select>
+
+                <label>Answers (select one correct answer):</label>
+                <div id="newAnswersContainer_${topicId}_${questionIdx}" class="new-answers-container">
+                    <div class="input-group mb-1">
+                        <div class="input-group-text">
+                            <input type="checkbox" class="form-check-input answer-checkbox"
+                                   data-topic="${topicId}" data-question="${questionIdx}"
+                                   name="IsCorrect[${questionIdx}][0]" value="true" />
+                        </div>
+                        <input class="form-control" name="NewAnswers[${questionIdx}][0]" placeholder="Enter answer" />
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary mt-1"
+                        onclick="addNewAnswer(${topicId}, ${questionIdx})">+ Add Answer</button>
+            `;
+
+            container.appendChild(block);
+        }
+
+		// Function to add new answer in the Edit Topic modal
+        function addNewAnswer(topicId, questionIdx) {
+            const container = document.getElementById(`newAnswersContainer_${topicId}_${questionIdx}`);
+            const answerIndex = container.children.length;
+
+            const answerGroup = document.createElement("div");
+            answerGroup.className = "input-group mb-1";
+            answerGroup.innerHTML = `
+                <div class="input-group-text">
+                    <input type="checkbox" class="form-check-input answer-checkbox"
+                           data-topic="${topicId}" data-question="${questionIdx}"
+                           name="IsCorrect[${questionIdx}][${answerIndex}]" value="true" />
+                </div>
+                <input class="form-control" name="NewAnswers[${questionIdx}][${answerIndex}]" placeholder="Enter answer" />
+            `;
+
+            container.appendChild(answerGroup);
+        }
+        
+        // Create topic modal event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            if (document.getElementById("createTopicModal")) {
+                document.getElementById("createTopicModal").addEventListener("hidden.bs.modal", function () {
+                    const container = document.getElementById("questionContainer");
+                    container.innerHTML = `
+                        <div class="question-block border p-2 mb-2">
+                            <label>Question:</label>
+                            <input class="form-control mb-2" name="Questions[0]" />
+                            <label>Difficulty Level:</label>
+                            <select class="form-select mb-2" name="Difficulty[0]">
+                                <option value="0">Easy</option>
+                                <option value="1">Medium</option>
+                                <option value="2">Hard</option>
+                            </select>
+                            <label>Answers (select one correct answer):</label>
+                            <div id="answersContainer_0">
+                                <div class="input-group mb-1">
+                                    <div class="input-group-text">
+                                        <input type="checkbox" class="form-check-input answer-checkbox" data-question="0" name="IsCorrect[0][0]" value="true" aria-label="Is answer correct?" />
+                                    </div>
+                                    <input class="form-control" name="Answers[0][0]" placeholder="Enter answer" />
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addAnswer(0)">+ Add Answer</button>
+                        </div>
+                    `;
+                    questionIndex = 0;
+                });
+            }
+
+		    // Edit topic modal event listener
+            document.querySelectorAll('[id^="editTopicModal_"]').forEach(modal => {
+                const topicId = modal.id.split('_')[1];
+                modal.addEventListener('hidden.bs.modal', function() {
+                    newQuestionCounters[topicId] = 0;
+
+                    const container = document.getElementById(`newQuestionContainer_${topicId}`);
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="question-block border p-2 mb-2">
+                                <label>Question Text:</label>
+                                <input class="form-control mb-2" name="Questions[0]" />
+
+                                <label>Difficulty Level:</label>
+                                <select class="form-select mb-2" name="Difficulty[0]">
+                                    <option value="0">Easy</option>
+                                    <option value="1">Medium</option>
+                                    <option value="2">Hard</option>
+                                </select>
+
+                                <label>Answers (select one correct answer):</label>
+                                <div id="newAnswersContainer_${topicId}_0" class="new-answers-container">
+                                    <div class="input-group mb-1">
+                                        <div class="input-group-text">
+                                            <input type="checkbox" class="form-check-input answer-checkbox"
+                                                    data-topic="${topicId}" data-question="0"
+                                                    name="IsCorrect[0][0]" value="true" />
+                                        </div>
+                                        <input class="form-control" name="NewAnswers[0][0]" placeholder="Enter answer" />
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary mt-1"
+                                        onclick="addNewAnswer(${topicId}, 0)">+ Add Answer</button>
+                            </div>
+                        `;
+                    }
+                });
+            });
+
+            // Add handler for the "Add Question" buttons
+            document.body.addEventListener('click', function(event) {
+                if (event.target.classList.contains('add-question-btn')) {
+                    const topicId = event.target.getAttribute('data-topic-id');
+                    if (topicId) {
+                        addNewQuestion(topicId);
+                    }
+                }
+                // Add handler for the "Add Answer" buttons
+                if (event.target.classList.contains('add-answer-btn')) {
+                    const topicId = event.target.getAttribute('data-topic-id');
+                    const questionIdx = event.target.getAttribute('data-question-idx');
+                    const container = document.getElementById(`newAnswersContainer_${topicId}_${questionIdx}`);
+
+                    if (container) {
+                        const answerIndex = container.children.length;
+                        const newAnswer = document.createElement('div');
+                        newAnswer.className = 'input-group mb-1';
+                        newAnswer.innerHTML = `
+                            <div class="input-group-text">
+                                <input type="checkbox" class="form-check-input answer-checkbox"
+                                        data-topic="${topicId}" data-question="${questionIdx}"
+                                        name="IsCorrect[${questionIdx}][${answerIndex}]" value="true" />
+                            </div>
+                            <input class="form-control" name="NewAnswers[${questionIdx}][${answerIndex}]" placeholder="Enter answer" />
+                        `;
+                        container.appendChild(newAnswer);
+                    }
+                }
+
+		        // Event listener for checkboxes
+                if (event.target.classList.contains('answer-checkbox')) {
+                    const clickedCheckbox = event.target;
+                    const questionIndex = clickedCheckbox.getAttribute('data-question');
+                    const topicId = clickedCheckbox.getAttribute('data-topic');
+
+                    if (clickedCheckbox.checked) {
+                        let container;
+
+                        if (topicId) {
+                            container = document.getElementById(`newAnswersContainer_${topicId}_${questionIndex}`);
+                        } else {
+                            container = document.getElementById(`answersContainer_${questionIndex}`);
+                        }
+
+                        if (!container) return;
+
+                        const checkboxes = container.querySelectorAll('.answer-checkbox');
+                        checkboxes.forEach(checkbox => {
+                            if (checkbox !== clickedCheckbox) {
+                                checkbox.checked = false;
+                            }
+                        });
+                    }
+                }
+            });
+
+		// Handle delete question button click
+		document.addEventListener('DOMContentLoaded', function() {
+            document.body.addEventListener('click', function(event) {
+                if (event.target.classList.contains('delete-question-btn')) {
+                    const questionId = event.target.getAttribute('data-question-id');
+
+                    if (confirm('Are you sure you want to delete this question?')) {
+                        document.getElementById('questionIdToDelete').value = questionId;
+                        document.getElementById('deleteQuestionForm').submit();
+                    }
+                }
+            });
+        });
 
     </script>
 }

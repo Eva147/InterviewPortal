@@ -17,6 +17,7 @@ public class PositionController : Controller
         try
         {
             var positions = await _context.Positions
+                .Where(p => p.IsActive)
                 .Include(p => p.PositionTopics)
                     .ThenInclude(pt => pt.Topic)
                         .ThenInclude(t => t.Questions)
@@ -33,6 +34,7 @@ public class PositionController : Controller
         catch
         {
             ModelState.AddModelError("", "An error occurred while retrieving positions.");
+            ViewBag.AllTopics = new List<Topic>();
             return View(new List<Position>());
         }
     }
@@ -87,12 +89,13 @@ public class PositionController : Controller
     [HttpPost]
     [Authorize(Roles = "HR,Admin")]
     public async Task<IActionResult> EditTopic(
-        int id, string Name,
+        int id,
+        string Name,
         Dictionary<int, string> Questions,
         Dictionary<int, string> Answers,
-        string NewQuestion,
-        string NewAnswerText,
-        int? NewAnswerQuestionId)
+        Dictionary<int, int> Difficulty,
+        Dictionary<int, Dictionary<int, string>> NewAnswers,
+        Dictionary<int, Dictionary<int, string>> IsCorrect)
     {
         var topic = await _context.Topics
             .Include(t => t.Questions)
@@ -103,6 +106,13 @@ public class PositionController : Controller
 
         topic.Name = Name;
 
+        Questions = Questions ?? new Dictionary<int, string>();
+        Answers = Answers ?? new Dictionary<int, string>();
+        Difficulty = Difficulty ?? new Dictionary<int, int>();
+        NewAnswers = NewAnswers ?? new Dictionary<int, Dictionary<int, string>>();
+        IsCorrect = IsCorrect ?? new Dictionary<int, Dictionary<int, string>>();
+
+        // Update existing questions and answers
         foreach (var question in topic.Questions)
         {
             if (Questions.TryGetValue(question.Id, out var newText))
@@ -119,20 +129,55 @@ public class PositionController : Controller
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(NewQuestion))
+        // Handle new questions
+        foreach (var questionEntry in NewAnswers ?? new Dictionary<int, Dictionary<int, string>>())
         {
-            topic.Questions.Add(new Question
-            {
-                QuestionText = NewQuestion
-            });
-        }
+            int questionIdx = questionEntry.Key;
 
-        if (!string.IsNullOrWhiteSpace(NewAnswerText) && NewAnswerQuestionId.HasValue)
-        {
-            var questionToUpdate = topic.Questions.FirstOrDefault(q => q.Id == NewAnswerQuestionId.Value);
-            if (questionToUpdate != null)
+            // Check if we have a question text for this index
+            if (Questions.TryGetValue(questionIdx, out var questionText) && !string.IsNullOrWhiteSpace(questionText))
             {
-                questionToUpdate.Answers.Add(new Answer { AnswerText = NewAnswerText });
+                // Get difficulty level
+                QuestionDifficultyLevel difficultyLevel = QuestionDifficultyLevel.Easy;
+                if (Difficulty != null && Difficulty.TryGetValue(questionIdx, out var diffValue))
+                {
+                    difficultyLevel = (QuestionDifficultyLevel)diffValue;
+                }
+
+                var newQuestion = new Question
+                {
+                    QuestionText = questionText,
+                    Difficulty = difficultyLevel,
+                    Answers = new List<Answer>()
+                };
+
+                // Add answers to the new question
+                if (questionEntry.Value != null)
+                {
+                    foreach (var answerEntry in questionEntry.Value)
+                    {
+                        if (!string.IsNullOrWhiteSpace(answerEntry.Value))
+                        {
+                            bool isCorrect = false;
+
+                            if (IsCorrect != null &&
+                                IsCorrect.TryGetValue(questionIdx, out var correctAnswers) &&
+                                correctAnswers.ContainsKey(answerEntry.Key))
+                            {
+                                isCorrect = true;
+                            }
+
+                            newQuestion.Answers.Add(new Answer
+                            {
+                                AnswerText = answerEntry.Value,
+                                IsCorrect = isCorrect
+                            });
+                        }
+                    }
+                }
+
+            // Add the new question to the topic
+            topic.Questions.Add(newQuestion);
             }
         }
 
@@ -174,7 +219,7 @@ public class PositionController : Controller
 
     [HttpPost]
     [Authorize(Roles = "HR,Admin")]
-    public async Task<IActionResult> CreateTopic(string Name, Dictionary<int, string> Questions, Dictionary<int, Dictionary<int, string>> Answers)
+    public async Task<IActionResult> CreateTopic(string Name, Dictionary<int, string> Questions, Dictionary<int, int> Difficulty, Dictionary<int, Dictionary<int, string>> Answers, Dictionary<int, Dictionary<int, string>> IsCorrect)
     {
         if (string.IsNullOrWhiteSpace(Name))
         {
@@ -189,7 +234,18 @@ public class PositionController : Controller
             var questionText = questionEntry.Value;
             if (string.IsNullOrWhiteSpace(questionText)) continue;
 
-            var newQuestion = new Question { QuestionText = questionText, Answers = new List<Answer>() };
+            QuestionDifficultyLevel difficultyLevel = QuestionDifficultyLevel.Easy;
+            if (Difficulty != null && Difficulty.TryGetValue(questionEntry.Key, out var difficultyValue))
+            {
+                difficultyLevel = (QuestionDifficultyLevel)difficultyValue;
+            }
+
+            var newQuestion = new Question
+            {
+                QuestionText = questionText,
+                Difficulty = difficultyLevel,
+                Answers = new List<Answer>()
+            };
 
             if (Answers.TryGetValue(questionEntry.Key, out var answers))
             {
@@ -197,7 +253,20 @@ public class PositionController : Controller
                 {
                     if (!string.IsNullOrWhiteSpace(answerEntry.Value))
                     {
-                        newQuestion.Answers.Add(new Answer { AnswerText = answerEntry.Value });
+                        bool isCorrect = false;
+
+                        if (IsCorrect != null &&
+                            IsCorrect.TryGetValue(questionEntry.Key, out var correctAnswers) &&
+                            correctAnswers.ContainsKey(answerEntry.Key))
+                        {
+                            isCorrect = true;
+                        }
+
+                        newQuestion.Answers.Add(new Answer
+                        {
+                            AnswerText = answerEntry.Value,
+                            IsCorrect = isCorrect
+                        });
                     }
                 }
             }

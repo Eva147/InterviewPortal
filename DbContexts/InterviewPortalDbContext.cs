@@ -23,7 +23,7 @@ public class InterviewPortalDbContext : IdentityDbContext<User>
             .HasOne(pt => pt.Position)
             .WithMany(p => p.PositionTopics)
             .HasForeignKey(pt => pt.PositionId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<PositionTopic>()
             .HasOne(pt => pt.Topic)
