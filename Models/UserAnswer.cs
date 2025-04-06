@@ -14,6 +14,7 @@ public class UserAnswer
 
     public int AnswerId { get; set; }
     public Answer Answer { get; set; } = null!;
-    // maybe we should add it?
     public DateTime AnsweredAt { get; set; }
+    public int? InterviewSessionId { get; set; }
+    public InterviewSession? InterviewSession { get; set; }
 }

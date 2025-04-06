@@ -70,10 +70,12 @@ namespace InterviewPortal.Controllers
                         UserId = userId,
                         QuestionId = question.Id,
                         AnswerId = selectedAnswerId,
-                        AnsweredAt = DateTime.Now
+                        AnsweredAt = DateTime.Now,
+                        InterviewSession = interviewSession
                     };
 
                     _context.UserAnswers.Add(userAnswer);
+                    interviewSession.UserAnswers.Add(userAnswer);
                 }
             }
 

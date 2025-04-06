@@ -72,12 +72,19 @@ tr:hover {
         color: #007bff;
     }
 
-.actions a {
+.actions a, button {
     color: var(--primary-color);
+    border: none;
     padding: 5px 10px;
+    margin-bottom: 10px;
     border-radius: 5px;
     font-size: 14px;
     text-decoration: none;
+}
+
+.button-wrapper {
+    display: flex;
+    gap: 15px;
 }
 
 .actions .btn-edit {
@@ -100,27 +107,4 @@ tr:hover {
     text-align: center;
     padding: 20px;
     color: #888;
-}
-@media (max-width: 768px) {
-    .filter-form
-
-{
-    flex-direction: column;
-    align-items: stretch;
-}
-
-.filter-form input,
-.filter-form select,
-.filter-form button {
-    margin: 5px 0;
-    width: 100%;
-}
-
-table {
-    font-size: 14px;
-}
-
-th, td {
-    padding: 8px;
-}
 }
