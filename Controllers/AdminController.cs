@@ -25,7 +25,12 @@ public class AdminController : Controller
         var userRoles = await _context.UserRoles.ToListAsync();
         var roles = await _context.Roles.ToListAsync();
 
-        // Filtering
+        if (User.IsInRole("Admin") && roleFilter == "Owner")
+        {
+            roleFilter = ""; 
+        }
+
+        // Filtering by Role
         if (!string.IsNullOrEmpty(roleFilter))
         {
             var usersInRole = userRoles
@@ -46,7 +51,7 @@ public class AdminController : Controller
         usersQuery = sortOrder switch
         {
             "name_desc" => usersQuery.OrderByDescending(u => u.FirstName).ThenByDescending(u => u.LastName),
-            _ => usersQuery.OrderBy(u => u.FirstName).ThenBy(u => u.LastName), // Default to ascending
+            _ => usersQuery.OrderBy(u => u.FirstName).ThenBy(u => u.LastName), 
         };
 
         var users = await usersQuery.ToListAsync();
@@ -60,7 +65,6 @@ public class AdminController : Controller
 
         return View();
     }
-
 
     // CREATE
     [HttpPost]
@@ -79,44 +83,81 @@ public class AdminController : Controller
     }
 
     // UPDATE 
-    [HttpPut]
+    [HttpPost]
     public async Task<IActionResult> UpdateUser(string userId, string firstName, string lastName, string email)
     {
         var user = await _userManager.FindByIdAsync(userId);
-        if (user != null)
-        {
-            user.FirstName = firstName;
-            user.LastName = lastName;
-            user.Email = email;
-            user.UserName = email;
-            await _userManager.UpdateAsync(user);
+        var currentUser = await _userManager.GetUserAsync(User);  
 
-            _context.Users.Update(user); 
-            await _context.SaveChangesAsync(); 
+        if (user == null)
+        {
+            return NotFound(); 
         }
-        return RedirectToAction("Index");
+
+        var currentUserRoles = await _userManager.GetRolesAsync(currentUser);
+        var userRoles = await _userManager.GetRolesAsync(user);
+
+        // Check if current user is an admin
+        if (currentUserRoles.Contains("Admin"))
+        {
+            if (userRoles.Contains("Admin") || userRoles.Contains("Owner"))
+            {
+                return Forbid(); 
+            }
+        }
+
+        user.FirstName = firstName;
+        user.LastName = lastName;
+        user.Email = email;
+
+        var result = await _userManager.UpdateAsync(user);
+
+        if (result.Succeeded)
+        {
+            return RedirectToAction("Index"); 
+        }
+
+        return View("Index");
     }
 
-    // DELETE 
-    [HttpDelete]
+    // DELETE
+    [HttpPost]
     public async Task<IActionResult> DeleteUser(string userId)
     {
+        // Find the user by ID
         var user = await _userManager.FindByIdAsync(userId);
+
         if (user != null)
         {
-            await _userManager.DeleteAsync(user);
+            var result = await _userManager.DeleteAsync(user);
 
-            _context.Users.Remove(user); 
-            await _context.SaveChangesAsync(); 
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index");
+            }
+
+            ModelState.AddModelError(string.Empty, "Failed to delete the user.");
+            return RedirectToAction("Index"); 
         }
-        return RedirectToAction("Index");
+
+        ModelState.AddModelError(string.Empty, "User not found.");
+        return RedirectToAction("Index"); 
     }
 
+    // UPDATE ROLES
     [HttpPost]
     public async Task<IActionResult> AssignRole(string userId, string role)
     {
+        var currentUser = await _userManager.GetUserAsync(User); 
+
+        var currentUserRoles = await _userManager.GetRolesAsync(currentUser);
+        if (!currentUserRoles.Contains("Admin"))
+        {
+            return Forbid(); 
+        }
+
         var user = await _userManager.FindByIdAsync(userId);
-        if (user != null && (role == "Admin" || role == "HR" || role == "Candidate"))
+        if (user != null && (role == "HR" || role == "Candidate"))
         {
             var currentRoles = await _userManager.GetRolesAsync(user);
             await _userManager.RemoveFromRolesAsync(user, currentRoles);
