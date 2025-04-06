@@ -297,7 +297,7 @@
 
 @section Scripts {
     <script>
-		// Function to add new question in the Create Topic modal
+        // Function to add new question in the Create Topic modal
         let questionIndex = 0;
 
         function addQuestion() {
@@ -310,11 +310,11 @@
                 <input class="form-control mb-2" name="Questions[${questionIndex}]" />
 
                 <label>Difficulty Level:</label>
-                    <select class="form-select mb-2" name="Difficulty[${questionIndex}]">
-                        <option value="0">Easy</option>
-                        <option value="1">Medium</option>
-                        <option value="2">Hard</option>
-                    </select>
+                <select class="form-select mb-2" name="Difficulty[${questionIndex}]">
+                    <option value="0">Easy</option>
+                    <option value="1">Medium</option>
+                    <option value="2">Hard</option>
+                </select>
 
                 <label>Answers (select one correct answer)</label>
                 <div id="answersContainer_${questionIndex}">
@@ -346,7 +346,7 @@
             container.appendChild(answerGroup);
         }
 
-		// Function to add new question in the Edit Topic modal
+        // Function to add new question in the Edit Topic modal
         const newQuestionCounters = {};
 
         function addNewQuestion(topicId) {
@@ -390,7 +390,7 @@
             container.appendChild(block);
         }
 
-		// Function to add new answer in the Edit Topic modal
+        // Function to add new answer in the Edit Topic modal
         function addNewAnswer(topicId, questionIdx) {
             const container = document.getElementById(`newAnswersContainer_${topicId}_${questionIdx}`);
             const answerIndex = container.children.length;
@@ -408,7 +408,7 @@
 
             container.appendChild(answerGroup);
         }
-        
+
         // Create topic modal event listener
         document.addEventListener('DOMContentLoaded', function() {
             if (document.getElementById("createTopicModal")) {
@@ -440,7 +440,7 @@
                 });
             }
 
-		    // Edit topic modal event listener
+            // Edit topic modal event listener
             document.querySelectorAll('[id^="editTopicModal_"]').forEach(modal => {
                 const topicId = modal.id.split('_')[1];
                 modal.addEventListener('hidden.bs.modal', function() {
@@ -509,7 +509,7 @@
                     }
                 }
 
-		        // Event listener for checkboxes
+                // Event listener for checkboxes
                 if (event.target.classList.contains('answer-checkbox')) {
                     const clickedCheckbox = event.target;
                     const questionIndex = clickedCheckbox.getAttribute('data-question');
@@ -536,8 +536,7 @@
                 }
             });
 
-		// Handle delete question button click
-		document.addEventListener('DOMContentLoaded', function() {
+            // Handle delete question button click
             document.body.addEventListener('click', function(event) {
                 if (event.target.classList.contains('delete-question-btn')) {
                     const questionId = event.target.getAttribute('data-question-id');
@@ -549,6 +548,5 @@
                 }
             });
         });
-
     </script>
 }
