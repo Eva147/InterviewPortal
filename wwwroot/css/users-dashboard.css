@@ -107,4 +107,34 @@ tr:hover {
     text-align: center;
     padding: 20px;
     color: #888;
+<<<<<<< HEAD:wwwroot/css/users-dashboard.css
+=======
+}
+@media (max-width: 768px) {
+    .filter-form
+
+{
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.filter-form input,
+.filter-form select,
+.filter-form button {
+    margin: 5px 0;
+    width: 100%;
+}
+
+table {
+    font-size: 14px;
+}
+
+th, td {
+    padding: 8px;
+}
+}
+
+body {
+    padding: 0px; 
+>>>>>>> 6064198e63ed1d7353356e67c9548902b22b58e4:wwwroot/css/admin-dashboard.css
 }
