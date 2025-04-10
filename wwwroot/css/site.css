@@ -41,7 +41,7 @@ html {
 body {
     font-family: 'Proxima Nova', Arial, Helvetica, sans-serif;
     color: var(--secondary-color);
-    padding-top: 60px;
+    padding-top: 55px;
     overflow-x: hidden;
     min-height: 100vh;
     display: flex;
@@ -65,6 +65,10 @@ ul {
 
 li {
     list-style-type: none;
+}
+
+a {
+    text-decoration: none;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -130,6 +134,15 @@ li {
     color: var(--primary-color);
 }
 
+.logout-btn-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.logout-button {
+    margin: 0 0 0 10px;
+}
+
 .footer_container {
     flex-shrink: 0;
     margin-top: 20px;
@@ -145,3 +158,34 @@ li {
     color: var(--secondary-color);
     padding: 0 10px;
 }
+
+/* Custom Table Styles */
+.table-custom {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 20px !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+}
+
+    .table-custom > thead > tr,
+    .table-custom > thead > tr > th {
+        background-color: #e0e0e0 !important;
+        color: #333333;
+        font-weight: bold;
+    }
+
+    .table-custom th,
+    .table-custom td {
+        padding: 12px;
+        text-align: left;
+    }
+
+    .table-custom > tbody > tr:nth-child(even) > td {
+        background-color: #f9f9f9 !important;
+    }
+
+    .table-custom > tbody > tr:hover > td {
+        background-color: #f1f1f1 !important;
+    }
