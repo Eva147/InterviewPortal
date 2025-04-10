@@ -63,6 +63,8 @@ tr:hover {
     background-color: #f1f1f1;
 }
 
+
+
 .sortable-column a {
     text-decoration: none;
     color: inherit;
@@ -72,69 +74,17 @@ tr:hover {
         color: #007bff;
     }
 
-.actions a, button {
-    color: var(--primary-color);
-    border: none;
-    padding: 5px 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    font-size: 14px;
-    text-decoration: none;
+
+.icon-edit {
+    color: var(--green-color);
 }
 
-.button-wrapper {
-    display: flex;
-    gap: 15px;
-}
-
-.actions .btn-edit {
-    background-color: var(--green-color);
-}
-
-.actions .btn-delete {
-    background-color: var(--accent-color);
-}
-
-.actions .btn-edit:hover {
-    background-color: var(--green-shadow-color);
-}
-
-.actions .btn-delete:hover {
-    background-color: #c82333;
+.icon-delete {
+    color: var(--accent-color);
 }
 
 .no-results {
     text-align: center;
     padding: 20px;
     color: #888;
-<<<<<<< HEAD:wwwroot/css/users-dashboard.css
-=======
-}
-@media (max-width: 768px) {
-    .filter-form
-
-{
-    flex-direction: column;
-    align-items: stretch;
-}
-
-.filter-form input,
-.filter-form select,
-.filter-form button {
-    margin: 5px 0;
-    width: 100%;
-}
-
-table {
-    font-size: 14px;
-}
-
-th, td {
-    padding: 8px;
-}
-}
-
-body {
-    padding: 0px; 
->>>>>>> 6064198e63ed1d7353356e67c9548902b22b58e4:wwwroot/css/admin-dashboard.css
 }
