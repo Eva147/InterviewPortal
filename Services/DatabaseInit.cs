@@ -157,6 +157,13 @@ public class DatabaseInit : IHostedService
         await CreateUserIfNotExists("admin@interviewportal.com", "Admin123!", "Admin", "Admin");
         await CreateUserIfNotExists("hr@interviewportal.com", "Hr123!", "Bob", "Perkins");
         await CreateUserIfNotExists("candidate@interviewportal.com", "Candidate123!", "John", "Smith");
+        await CreateUserIfNotExists("candidate1@interviewportal.com", "Candidate123!", "Jane", "Doe");
+        await CreateUserIfNotExists("candidate2@interviewportal.com", "Candidate123!", "Alice", "Johnson");
+        await CreateUserIfNotExists("candidate3@interviewportal.com", "Candidate123!", "Bob", "Brown");
+        await CreateUserIfNotExists("candidate4@interviewportal.com", "Candidate123!", "Charlie", "Davis");
+        await CreateUserIfNotExists("candidate5@interviewportal.com", "Candidate123!", "David", "Wilson");
+        await CreateUserIfNotExists("candidate6@interviewportal.com", "Candidate123!", "Eve", "Garcia");
+        await CreateUserIfNotExists("candidate7@interviewportal.com", "Candidate123!", "Frank", "Martinez");
     }
 
     // Seed Positions
@@ -274,20 +281,8 @@ public class DatabaseInit : IHostedService
                 },
                 new Question
                 {
-                    QuestionText = "What is middleware in ASP.NET Core and how is it configured?",
-                    TopicId = FindTopic("ASP.NET Core").Id,
-                    Difficulty = QuestionDifficultyLevel.Medium
-                },
-                new Question
-                {
                     QuestionText = "What is the purpose of the \"using\" statement in C#?",
                     TopicId = FindTopic("C# Fundamentals").Id,
-                    Difficulty = QuestionDifficultyLevel.Easy
-                },
-                new Question
-                {
-                    QuestionText = "What is the difference between a product manager and a project manager?",
-                    TopicId = FindTopic("Product Development").Id,
                     Difficulty = QuestionDifficultyLevel.Easy
                 },
                 new Question
@@ -295,7 +290,34 @@ public class DatabaseInit : IHostedService
                     QuestionText = "Explain the difference between abstract classes and interfaces in C#.",
                     TopicId = FindTopic("C# Fundamentals").Id,
                     Difficulty = QuestionDifficultyLevel.Medium
-                }
+                },
+                new Question
+                {
+                    QuestionText = "Explain dependency injection in ASP.NET Core and how services are registered in the service container.",
+                    TopicId = FindTopic("ASP.NET Core").Id,
+                    Difficulty = QuestionDifficultyLevel.Medium
+                },
+
+                new Question
+                {
+                    QuestionText = "What is the difference between IActionResult and ActionResult in ASP.NET Core MVC controllers?",
+                    TopicId = FindTopic("ASP.NET Core").Id,
+                    Difficulty = QuestionDifficultyLevel.Medium
+                },
+                new Question
+                {
+                    QuestionText = "What is middleware in ASP.NET Core and how is it configured?",
+                    TopicId = FindTopic("ASP.NET Core").Id,
+                    Difficulty = QuestionDifficultyLevel.Medium
+                },
+                
+                new Question
+                {
+                    QuestionText = "What is the difference between a product manager and a project manager?",
+                    TopicId = FindTopic("Product Development").Id,
+                    Difficulty = QuestionDifficultyLevel.Easy
+                },
+                
             };
 
         dbContext.Questions.AddRange(questions);
@@ -307,10 +329,12 @@ public class DatabaseInit : IHostedService
 
     private async Task SeedAnswersAsync(InterviewPortalDbContext dbContext, List<Question> questions)
     {
-        var question1 = questions.FirstOrDefault(q => q.QuestionText.Contains("value types"));
-        var question2 = questions.FirstOrDefault(q => q.QuestionText.Contains("middleware"));
-        var question3 = questions.FirstOrDefault(q => q.QuestionText.Contains("using"));
-        var question4 = questions.FirstOrDefault(q => q.QuestionText.Contains("interfaces"));
+        var question1 = questions.FirstOrDefault(q => q.QuestionText.Contains("value types and reference types in C#"));
+        var question2 = questions.FirstOrDefault(q => q.QuestionText.Contains("purpose of the \"using\" statement in C#"));
+        var question3 = questions.FirstOrDefault(q => q.QuestionText.Contains("abstract classes and interfaces in C#"));
+        var question4 = questions.FirstOrDefault(q => q.QuestionText.Contains("dependency injection in ASP.NET Core"));
+        var question5 = questions.FirstOrDefault(q => q.QuestionText.Contains("IActionResult and ActionResult in ASP.NET Core MVC controllers"));
+        var question6 = questions.FirstOrDefault(q => q.QuestionText.Contains("middleware in ASP.NET Core"));
 
         if (question1 != null)
         {
@@ -327,30 +351,6 @@ public class DatabaseInit : IHostedService
                         QuestionId = question1.Id,
                         AnswerText = "Value types store a reference, while reference types store data directly.",
                         IsCorrect = false
-                    },
-                    new Answer
-                    {
-                        QuestionId = question3.Id,
-                        AnswerText = "The \"using\" statement ensures that IDisposable objects are properly disposed of when they go out of scope, even if exceptions occur.",
-                        IsCorrect = true,
-                    },
-                    new Answer
-                    {
-                        QuestionId = question3.Id,
-                        AnswerText = "The \"using\" statement is only for importing namespaces and has no effect on resource management.",
-                        IsCorrect = false,
-                    },
-                    new Answer
-                    {
-                        QuestionId = question4.Id,
-                        AnswerText = "Abstract classes can contain implementation details, constructors, and fields, while interfaces primarily define contracts. A class can inherit from only one abstract class but can implement multiple interfaces.",
-                        IsCorrect = true,
-                    },
-                    new Answer
-                    {
-                        QuestionId = question4.Id,
-                        AnswerText = "Abstract classes and interfaces are interchangeable in C#, with interfaces supporting default implementations in all versions and providing better performance than inheritance.",
-                        IsCorrect = false,
                     }
                 };
             dbContext.Answers.AddRange(answersForQ1);
@@ -363,22 +363,103 @@ public class DatabaseInit : IHostedService
                     new Answer
                     {
                         QuestionId = question2.Id,
-                        AnswerText = "Middleware are components that handle requests and responses; they are configured in Program.cs.",
-                        IsCorrect = true
+                        AnswerText = "The \"using\" statement ensures that IDisposable objects are properly disposed of when they go out of scope, even if exceptions occur.",
+                        IsCorrect = true,
                     },
                     new Answer
                     {
                         QuestionId = question2.Id,
-                        AnswerText = "Middleware is used solely for logging and cannot handle responses.",
+                        AnswerText = "The \"using\" statement is only for importing namespaces and has no effect on resource management.",
+                        IsCorrect = false,
+                    },
+                };
+            dbContext.Answers.AddRange(answersForQ2);
+        }
+
+        if(question3 != null)
+        {
+            var answersForQ3 = new List<Answer>
+                {
+                    new Answer
+                    {
+                        QuestionId = question3.Id,
+                        AnswerText = "Abstract classes can have both abstract and concrete methods, while interfaces can only have abstract methods.",
+                        IsCorrect = true
+                    },
+                    new Answer
+                    {
+                        QuestionId = question3.Id,
+                        AnswerText = "Abstract classes cannot be instantiated, while interfaces can be instantiated.",
                         IsCorrect = false
                     }
                 };
-            dbContext.Answers.AddRange(answersForQ2);
+            dbContext.Answers.AddRange(answersForQ3);
+        }
+
+        if (question4 != null) {
+            var answersForQ4 = new List<Answer>
+                {
+                    new Answer
+                    {
+                        QuestionId = question4.Id,
+                        AnswerText = "Dependency injection is a design pattern that allows a class to receive its dependencies from an external source rather than creating them itself.",
+                        IsCorrect = true
+                    },
+                    new Answer
+                    {
+                        QuestionId = question4.Id,
+                        AnswerText = "Dependency injection is a way to inject data into a database.",
+                        IsCorrect = false
+                    }
+                };
+            dbContext.Answers.AddRange(answersForQ4);
+        }
+
+        if (question5 != null)
+        {
+            var answersForQ5 = new List<Answer>
+                {
+                    new Answer
+                    {
+                        QuestionId = question5.Id,
+                        AnswerText = "IActionResult is an interface that represents the result of an action method, while ActionResult is a concrete class that implements IActionResult.",
+                        IsCorrect = true
+                    },
+                    new Answer
+                    {
+                        QuestionId = question5.Id,
+                        AnswerText = "IActionResult is used for synchronous actions, while ActionResult is used for asynchronous actions.",
+                        IsCorrect = false
+                    }
+                };
+            dbContext.Answers.AddRange(answersForQ5);
+        }
+
+        if (question6 != null)
+        {
+            var answersForQ6 = new List<Answer>
+                {
+                    new Answer
+                    {
+                        QuestionId = question6.Id,
+                        AnswerText = "Middleware is software that is assembled into an application pipeline to handle requests and responses.",
+                        IsCorrect = true
+                    },
+                    new Answer
+                    {
+                        QuestionId = question6.Id,
+                        AnswerText = "Middleware is a type of database used for storing application data.",
+                        IsCorrect = false
+                    }
+                };
+            dbContext.Answers.AddRange(answersForQ6);
         }
 
         await dbContext.SaveChangesAsync();
         Console.WriteLine("Added sample answers for questions");
     }
+
+
 
     private async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
     {
