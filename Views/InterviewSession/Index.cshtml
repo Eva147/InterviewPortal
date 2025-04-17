@@ -1,7 +1,24 @@
-﻿@model InterviewPortal.Models.InterviewSession
+﻿@inject IHttpContextAccessor HttpContextAccessor
+@model InterviewPortal.Models.InterviewSession
 
 @{
     ViewData["Title"] = "Interview Session";
+
+    var userAnswersJson = HttpContextAccessor.HttpContext.Session.GetString("MockInterviewState");
+    var userAnswers = new Dictionary<int, int>();
+    var questions = Model.Topic.Questions.ToList(); 
+
+    if (!string.IsNullOrEmpty(userAnswersJson))
+    {
+        var mockState = Newtonsoft.Json.JsonConvert.DeserializeObject<InterviewPortal.Controllers.MockInterviewState>(userAnswersJson);
+        for (int i = 0; i < questions.Count; i++)
+        {
+            if (i < mockState.UserAnswers.Count && mockState.UserAnswers[i] != -1)
+            {
+                userAnswers[questions[i].Id] = mockState.UserAnswers[i];
+            }
+        }
+    }
 }
 
 @section Styles {
@@ -14,14 +31,15 @@
     <p>Good luck!</p>
 
     <form id="interviewForm" method="post" asp-action="SubmitInterview" asp-controller="InterviewSession" asp-route-sessionId="@Model.Id">
+        @Html.AntiForgeryToken()
+
         <div class="interview-questions">
-            @{
-                int questionIndex = 0;
-            }
-            @foreach (var question in Model.Topic.Questions)
+            @for (int i = 0; i < Model.Topic.Questions.Count; i++)
             {
+                var question = questions[i];
+
                 <div class="question-container">
-                    <h3 class="question-text">@(questionIndex + 1). @question.QuestionText</h3>
+                    <h3 class="question-text">@question.QuestionText</h3>
 
                     <div class="answers-container">
                         @foreach (var answer in question.Answers)
@@ -29,15 +47,15 @@
                             <div class="answer-option">
                                 <input type="radio"
                                        id="answer_@answer.Id"
-                                       name="Answers[@questionIndex]"
+                                       name="Answers[@question.Id]"
                                        value="@answer.Id"
-                                       required />
+                                       data-question-id="@question.Id"
+                                @(userAnswers.ContainsKey(question.Id) && userAnswers[question.Id] == answer.Id ? "checked" : "") />
                                 <label for="answer_@answer.Id">@answer.AnswerText</label>
                             </div>
                         }
                     </div>
                 </div>
-                questionIndex++;
             }
         </div>
 
@@ -49,4 +67,30 @@
     <div class="back-link">
         <a href="javascript:history.back();">← Back to Instructions</a>
     </div>
+
+    <script>
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function () {
+                const questionId = parseInt(this.dataset.questionId);
+                const answerId = parseInt(this.value);
+                const sessionId = @Model.Id;
+                const questionIndex = Array.from(document.querySelectorAll('.question-container')).findIndex(container =>
+                    container.querySelector(`[name="Answers[${questionId}]"]`)
+                );
+
+                fetch('/InterviewSession/SaveAnswerToSession', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        sessionId: sessionId,
+                        questionIndex: questionIndex,
+                        answerId: answerId
+                    })
+                });
+            });
+        });
+    </script>
 </div>
