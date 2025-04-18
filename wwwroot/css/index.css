@@ -7,6 +7,14 @@
     background-color: #2D3848;
 }
 
+.col-md-6 {
+    position: relative;
+}
+
+h2 {
+    text-align: center;
+}
+
 .main-image {
     max-width: 300px;
     height: auto;
@@ -16,4 +24,140 @@
     background-color: var(--addicional-color);
     width: 100%;
     height: 300px;
+}
+
+.section-title {
+    text-align: center;
+    width: 100%;
+    margin: 0 auto 1rem;
+}
+
+.instructions-container {
+    padding-bottom: 2rem;
+}
+
+.instructions-container-dark {
+    background-color: var(--secondary-color);
+}
+
+.dark-container h2,
+.dark-container p,
+.dark-container ul li {
+    color: var(--primary-color);
+}
+
+.instruction-block {
+    padding: 4rem;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.instruction-image {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.instruction-title {
+    margin-bottom: 1.5rem;
+}
+
+.instruction-text {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+.feature-list {
+    padding-left: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+    .feature-list li {
+        margin-bottom: 0.5rem;
+    }
+
+.companies-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 2.5rem;
+}
+
+.company-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+    .company-logo img {
+        max-height: 60px;
+        max-width: 180px;
+        filter: grayscale(100%);
+        opacity: 0.7;
+        transition: all 0.3s ease;
+    }
+
+    .company-logo:hover img {
+        filter: grayscale(0%);
+        opacity: 1;
+    }
+
+.button-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.button {
+    width: 40%;
+    background-color: var(--accent-color);
+    color: var(--primary-color);
+    border-radius: 20px;
+    padding: 10px 25px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+    margin: 5px;
+    text-align: center;
+}
+
+.button:hover {
+    background-color: #d84a48;
+    color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+}
+
+.button:focus,
+.button:active,
+.button:active:focus {
+    box-shadow: none !important;
+    outline: none !important;
+    background-color: #d84a48;
+    transform: translateY(1px);
+    border-color: #d84a48;
+}
+
+.image {
+    position: absolute;
+    bottom: -40%;
+    max-height: 200px;
+    z-index: 2;
+    clip-path: inset(0 0 40% 0);
+}
+
+.image-left {
+    left: 0;
+}
+
+.image-right {
+    right: 0;
 }
