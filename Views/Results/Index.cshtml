@@ -1,0 +1,88 @@
+﻿@{
+    ViewData["Title"] = "Interview Results";
+}
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
+<div class="container">
+    <h1>Interview Results</h1>
+    
+    <!-- Position Selector Form -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form asp-action="SelectPosition" asp-controller="Results" method="post">
+                <div class="form-group">
+                    <label for="positionId" class="form-label">Select Position:</label>
+                    <select name="positionId" id="positionId" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- Select a position --</option>
+                        @foreach (var position in ViewBag.Positions)
+                        {
+                            <option value="@position.Id" selected="@(ViewBag.SelectedPositionId.ToString() == position.Id.ToString())">@position.Name</option>
+                        }
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Interview Results Table (shown only when a position is selected) -->
+    @if (ViewBag.SelectedPositionId > 0 && ViewBag.CandidateResults != null && ViewBag.CandidateResults.Count > 0)
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Candidates for @ViewBag.SelectedPositionName</h2>
+                <div class="table-responsive">
+                    <table class="table table-custom">
+                        <thead>
+                            <tr>
+                                <th>Candidate Name</th>
+                                <th>Email</th>
+                                @foreach (var topic in ViewBag.Topics)
+                                {
+                                    <th>@topic.Name (%)</th>
+                                }
+                                <th>Total Result (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var result in ViewBag.CandidateResults)
+                            {
+                                <tr>
+                                    <td>@result["CandidateName"]</td>
+                                    <td>@result["CandidateEmail"]</td>
+                                    
+                                    @foreach (var topic in ViewBag.Topics)
+                                    {
+                                        var topicResult = ((List<Dictionary<string, object>>)result["TopicResults"])
+                                            .FirstOrDefault(t => (int)t["TopicId"] == topic.Id);
+                                            
+                                        var percentage = topicResult != null ? (double)topicResult["PercentageCorrect"] : 0;
+                                        var questionsCorrect = topicResult != null ? (int)topicResult["QuestionsCorrect"] : 0;
+                                        var totalQuestions = topicResult != null ? (int)topicResult["TotalQuestions"] : 0;
+                                        
+                                        <td>
+                                            @Math.Round(percentage)%
+                                            <small class="d-block text-muted">(@questionsCorrect/@totalQuestions)</small>
+                                        </td>
+                                    }
+                                    
+                                    <td>
+                                        @Math.Round((double)result["TotalPercentage"])%
+                                        <small class="d-block text-muted">(@result["TotalCorrect"]/@result["TotalQuestions"])</small>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else if (ViewBag.SelectedPositionId > 0)
+    {
+        <div class="alert alert-info">No interview results found for this position.</div>
+    }
+</div>

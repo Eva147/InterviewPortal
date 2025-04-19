@@ -1,0 +1,16 @@
+﻿.form {
+    margin-bottom: 20px;
+}
+
+.button-search {
+    margin: 10px 0 10px;
+    border: 1px solid var(--green-color);
+    padding: 3px 20px;
+    margin: 0;
+    background-color: var(--green-color);
+    border: none !important;
+}
+
+    .button-search:hover {
+        background-color: var(--green-shadow-color);
+    }
