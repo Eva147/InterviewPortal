@@ -37,10 +37,7 @@
             <option value="">All Roles</option>
             @foreach (var role in roles)
             {
-                if (role != "Owner")
-                {
-                    <option value="@role" selected="@(role == roleFilter ? "selected" : null)">@role</option>
-                }
+                <option value="@role" selected="@(role == roleFilter ? "selected" : null)">@role</option>
             }
         </select>
     </form>

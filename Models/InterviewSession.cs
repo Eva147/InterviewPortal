@@ -11,8 +11,7 @@ public class InterviewSession
     public int PositionId { get; set; }
     public Position Position { get; set; } = null!;
     
-    [Required]
-    public int TopicId { get; set; }
+    public int? TopicId { get; set; }
     public Topic Topic { get; set; } = null!;
     
     [Required]
