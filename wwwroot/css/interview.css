@@ -55,7 +55,6 @@
 
     .answer-option:hover {
         background-color: var(--addicional-color);
-        ;
     }
 
     .answer-option input[type="radio"] {
@@ -145,7 +144,6 @@
             text-decoration: underline;
         }
 
-/* Make the layout responsive */
 @media (max-width: 768px) {
     .question-container {
         padding: 15px;
@@ -159,3 +157,71 @@
         padding: 8px 12px;
     }
 }
+
+/* Interview Validation */
+.validation-error {
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    display: none;
+    transition: opacity 0.3s ease;
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+}
+
+.question-container.unanswered {
+    border-left: 3px solid #dc3545;
+    padding-left: 10px;
+    transition: all 0.3s ease;
+    animation: pulse 1.5s infinite;
+}
+
+.question-error {
+    color: #dc3545;
+    margin-top: 5px;
+    font-size: 0.9em;
+    display: none;
+    transition: opacity 0.3s ease;
+}
+
+.fade-out {
+    opacity: 0;
+}
+
+.session-source {
+    padding: 5px 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+}
+
+@keyframes pulse {
+    0% {
+        border-left-color: #dc3545;
+    }
+
+    50% {
+        border-left-color: #ff6b6b;
+    }
+
+    100% {
+        border-left-color: #dc3545;
+    }
+}
+
+.answer-option {
+    margin: 5px 0;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+    .answer-option:hover {
+        background-color: #f8f9fa;
+    }

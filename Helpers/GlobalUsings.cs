@@ -15,3 +15,4 @@ global using Microsoft.AspNetCore.Authorization;
 global using System.ComponentModel.DataAnnotations;
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using System.Security.Claims;
+global using Newtonsoft.Json;
