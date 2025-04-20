@@ -4,7 +4,7 @@ public class InterviewSession
     public int Id { get; set; }
     
     [Required]
-    public string UserId { get; set; }
+    public required string UserId { get; set; }
     public User User { get; set; } = null!;
 
     [Required]

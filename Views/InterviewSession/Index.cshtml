@@ -3,22 +3,10 @@
 
 @{
     ViewData["Title"] = "Interview Session";
-
-    var userAnswersJson = HttpContextAccessor.HttpContext.Session.GetString("MockInterviewState");
-    var userAnswers = new Dictionary<int, int>();
-    var questions = Model.Topic.Questions.ToList(); 
-
-    if (!string.IsNullOrEmpty(userAnswersJson))
-    {
-        var mockState = Newtonsoft.Json.JsonConvert.DeserializeObject<InterviewPortal.Controllers.MockInterviewState>(userAnswersJson);
-        for (int i = 0; i < questions.Count; i++)
-        {
-            if (i < mockState.UserAnswers.Count && mockState.UserAnswers[i] != -1)
-            {
-                userAnswers[questions[i].Id] = mockState.UserAnswers[i];
-            }
-        }
-    }
+    var fromSession = !string.IsNullOrEmpty(
+       Context.Session.GetString($"InterviewQuestions_{Model.Id}")
+    );
+    var questionCount = (ViewData["RandomQuestions"] as List<InterviewPortal.Models.Question>)?.Count ?? 0;
 }
 
 @section Styles {
@@ -26,71 +14,214 @@
     <link rel="stylesheet" href="~/css/interview.css" />
 }
 
+<div class="session-source" style="background: @(fromSession ? "lightgreen" : "lightpink")">
+    Questions loaded: @(fromSession ? "FROM SESSION" : "FRESH RANDOMIZATION")
+</div>
+
 <div class="interview-type-container">
     <h2>Welcome to your Interview for the position of <strong>@Model.Position.Name</strong>!</h2>
     <p>Good luck!</p>
+
+    <!-- Validation error message -->
+    <div id="validationError" class="validation-error">
+        <i class="fas fa-exclamation-circle"></i> Please answer all questions before submitting.
+    </div>
 
     <form id="interviewForm" method="post" asp-action="SubmitInterview" asp-controller="InterviewSession" asp-route-sessionId="@Model.Id">
         @Html.AntiForgeryToken()
 
         <div class="interview-questions">
-            @for (int i = 0; i < Model.Topic.Questions.Count; i++)
-            {
-                var question = questions[i];
+            @{
+                int questionIndex = 0;
+                foreach (var question in ViewData["RandomQuestions"] as List<InterviewPortal.Models.Question> ?? new List<InterviewPortal.Models.Question>())
+                {
+                    <div class="question-container" id="question-@questionIndex" data-question-id="@question.Id">
+                        <h3 class="question-text">@question.QuestionText</h3>
 
-                <div class="question-container">
-                    <h3 class="question-text">@question.QuestionText</h3>
-
-                    <div class="answers-container">
-                        @foreach (var answer in question.Answers)
-                        {
-                            <div class="answer-option">
-                                <input type="radio"
-                                       id="answer_@answer.Id"
-                                       name="Answers[@question.Id]"
-                                       value="@answer.Id"
-                                       data-question-id="@question.Id"
-                                @(userAnswers.ContainsKey(question.Id) && userAnswers[question.Id] == answer.Id ? "checked" : "") />
-                                <label for="answer_@answer.Id">@answer.AnswerText</label>
-                            </div>
-                        }
+                        <div class="answers-container">
+                            @foreach (var answer in question.Answers ?? new List<Answer>())
+                            {
+                                <div class="answer-option">
+                                    <input type="radio"
+                                           id="answer_@answer.Id"
+                                           name="Answers[@question.Id]"
+                                           value="@answer.Id"
+                                           class="answer-radio" />
+                                    <label for="answer_@answer.Id">@answer.AnswerText</label>
+                                </div>
+                            }
+                        </div>
+                        <div class="question-error">
+                            <i class="fas fa-exclamation-triangle"></i> Please select an answer for this question
+                        </div>
                     </div>
-                </div>
+                    questionIndex++;
+                }
             }
         </div>
 
         <div class="submit-container">
-            <button type="submit" class="interview-button">Submit Interview</button>
+            <button type="button" id="validateAndSubmit" class="interview-button">Submit Interview</button>
         </div>
     </form>
 
     <div class="back-link">
         <a href="javascript:history.back();">← Back to Instructions</a>
     </div>
+</div>
 
+@section Scripts {
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script>
-        document.querySelectorAll('input[type="radio"]').forEach(radio => {
-            radio.addEventListener('change', function () {
-                const questionId = parseInt(this.dataset.questionId);
-                const answerId = parseInt(this.value);
-                const sessionId = @Model.Id;
-                const questionIndex = Array.from(document.querySelectorAll('.question-container')).findIndex(container =>
-                    container.querySelector(`[name="Answers[${questionId}]"]`)
-                );
+        document.addEventListener('DOMContentLoaded', function() {
+            const submitButton = document.getElementById('validateAndSubmit');
+            const form = document.getElementById('interviewForm');
+            const validationError = document.getElementById('validationError');
+            const allRadios = document.querySelectorAll('.answer-radio');
 
-                fetch('/InterviewSession/SaveAnswerToSession', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                    },
-                    body: JSON.stringify({
-                        sessionId: sessionId,
-                        questionIndex: questionIndex,
-                        answerId: answerId
-                    })
+            if (!submitButton || !form || !validationError) return;
+
+        // Function to check if all questions are answered
+        function checkAllQuestionsAnswered() {
+            const answeredQuestions = new Set();
+            allRadios.forEach(radio => {
+                if (radio && radio.checked) {
+                    const match = radio.name.match(/\[(.*?)\]/);
+                    if (match && match[1]) {
+                        answeredQuestions.add(match[1]);
+                    }
+                }
+            });
+
+            // Get the question count from a data attribute instead
+            const questionCount = parseInt(document.getElementById('interviewForm').dataset.questionCount || '0');
+            return answeredQuestions.size === questionCount;
+        }
+
+            // Function to update validation UI
+            function updateValidationUI() {
+                if (checkAllQuestionsAnswered() && validationError) {
+                    validationError.style.display = 'none';
+                }
+
+                document.querySelectorAll('.question-container').forEach(container => {
+                    if (!container) return;
+
+                    const questionId = container.getAttribute('data-question-id');
+                    const radioName = `Answers[${questionId}]`;
+                    const isAnswered = document.querySelector(`input[name="${radioName}"]:checked`) !== null;
+                    const errorElement = container.querySelector('.question-error');
+
+                    if (isAnswered && errorElement) {
+                        container.classList.remove('unanswered');
+                        errorElement.style.display = 'none';
+                    }
+                });
+            }
+
+            // Radio button change event
+            allRadios.forEach(radio => {
+                if (!radio) return;
+
+                radio.addEventListener('change', function() {
+                    const container = this.closest('.question-container');
+                    if (!container) return;
+
+                    container.classList.remove('unanswered');
+                    const errorElement = container.querySelector('.question-error');
+
+                    if (errorElement) {
+                        errorElement.classList.add('fade-out');
+                        setTimeout(() => {
+                            errorElement.style.display = 'none';
+                            errorElement.classList.remove('fade-out');
+                        }, 300);
+                    }
+
+                    if (checkAllQuestionsAnswered() && validationError) {
+                        validationError.classList.add('fade-out');
+                        setTimeout(() => {
+                            validationError.style.display = 'none';
+                            validationError.classList.remove('fade-out');
+                        }, 300);
+                    }
                 });
             });
+
+            // Submit button click handler
+            submitButton.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                if (validationError) {
+                    validationError.style.display = 'none';
+                }
+
+                const questionContainers = document.querySelectorAll('.question-container');
+                let firstUnanswered = null;
+                const answeredQuestions = new Set();
+
+                allRadios.forEach(radio => {
+                    if (radio && radio.checked) {
+                        const match = radio.name.match(/\[(.*?)\]/);
+                        if (match && match[1]) {
+                            answeredQuestions.add(match[1]);
+                        }
+                    }
+                });
+
+                questionContainers.forEach(container => {
+                    if (!container) return;
+
+                    const questionId = container.getAttribute('data-question-id');
+                    const errorElement = container.querySelector('.question-error');
+
+                    if (!answeredQuestions.has(questionId)) {
+                        container.classList.add('unanswered');
+                        if (errorElement) {
+                            errorElement.style.display = 'block';
+                        }
+
+                        if (!firstUnanswered) {
+                            firstUnanswered = container;
+                        }
+                    } else {
+                        container.classList.remove('unanswered');
+                        if (errorElement) {
+                            errorElement.style.display = 'none';
+                        }
+                    }
+                });
+
+                if (firstUnanswered) {
+                    if (validationError) {
+                        validationError.style.display = 'block';
+                    }
+
+                    firstUnanswered.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+
+                    const firstRadio = firstUnanswered.querySelector('input[type="radio"]');
+                    if (firstRadio) {
+                        firstRadio.focus();
+                    }
+                } else {
+                    form.submit();
+                }
+            });
+
+            // Allow form submission on Enter key
+            if (form) {
+                form.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (submitButton) {
+                            submitButton.click();
+                        }
+                    }
+                });
+            }
         });
     </script>
-</div>
+}

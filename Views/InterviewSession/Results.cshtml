@@ -1,7 +1,10 @@
 ﻿@model InterviewPortal.Models.InterviewSession
 @{
     ViewData["Title"] = Model.IsMock ? "Mock Interview Results" : "Interview Submitted";
-    bool showCorrectAnswers = (bool)ViewData["ShowCorrectAnswers"];
+    bool showCorrectAnswers = Model.IsMock; // Simplified this line
+    int correctAnswers = ViewData["CorrectAnswers"] as int? ?? 0;
+    int totalQuestions = ViewData["TotalQuestions"] as int? ?? 0;
+}
 }
 
 @section Styles {
@@ -41,7 +44,7 @@
         <div class="score-container">
             <h3>Your Result</h3>
             <p class="score-text">
-                You answered @ViewData["CorrectAnswers"] out of @Model.Topic.Questions.Count questions correctly.
+                You answered @correctAnswers out of @totalQuestions questions correctly.
             </p>
         </div>
 
