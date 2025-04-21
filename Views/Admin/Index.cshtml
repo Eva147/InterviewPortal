@@ -31,9 +31,10 @@
 
     <!-- Search & Filter -->
     <form class="filter-form" asp-action="Index" method="get">
-        <input type="text" name="search" value="@search" placeholder="Search by name..." oninput="this.form.submit()" />
+        <input type="text" name="search" value="@search" placeholder="Search by name..." />
 
-        <select name="roleFilter" onchange="this.form.submit()">
+
+        <select name="roleFilter">
             <option value="">All Roles</option>
             @foreach (var role in roles)
             {
@@ -191,3 +192,51 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector(".filter-form");
+        const searchInput = form.querySelector("input[name='search']");
+        const roleSelect = form.querySelector("select[name='roleFilter']");
+        const tableBody = document.querySelector("table tbody");
+
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+        });
+
+        async function fetchAndRenderUsers() {
+            const search = searchInput.value;
+            const roleFilter = roleSelect.value;
+
+            const response = await fetch(`/Admin/SearchUsers?search=${encodeURIComponent(search)}&roleFilter=${encodeURIComponent(roleFilter)}`);
+            const users = await response.json();
+
+            tableBody.innerHTML = "";
+
+            if (users.length === 0) {
+                tableBody.innerHTML = "<tr><td colspan='4'>No users found.</td></tr>";
+                return;
+            }
+
+            users.forEach(user => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${user.firstName} ${user.lastName}</td>
+                    <td>${user.email}</td>
+                    <td>${user.roles.join(", ")}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" disabled>Edit</button>
+                        <button class="btn btn-sm btn-danger" disabled>Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        searchInput.addEventListener("input", fetchAndRenderUsers);
+        roleSelect.addEventListener("change", fetchAndRenderUsers);
+
+        fetchAndRenderUsers(); 
+    });
+</script>
+
