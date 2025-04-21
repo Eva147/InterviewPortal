@@ -5,7 +5,7 @@
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/positions-dashboard.css" />
+<link rel="stylesheet" href="~/css/positions-dashboard.css" />
 }
 
 @if (TempData["Message"] != null)
@@ -22,26 +22,50 @@
         <!-- Create Topic Button -->
         <button class="btn btn-success add-btn" data-bs-toggle="modal" data-bs-target="#createTopicModal">Add Topic</button>
     </div>
-    
+
     @foreach (var position in Model)
     {
         <div class="card mb-4 shadow-sm">
             <div class="card-body">
                 <div class="position-name-wrapper">
-                    <h3 class="card-title mb-0">@position.Name</h3>
-
-                    <button class="btn button-edit" data-bs-toggle="modal" data-bs-target="#editPositionModal_@position.Id">Edit</button>
+                    <div>
+                        <span class="status @(position.IsActive ? "active" : "archived")">
+                            @(position.IsActive ? "Active" : "Archived")
+                        </span>
+                        <h3 class="card-title mb-0"> @position.Name</h3>
+                    </div>
+                    <div class="position-actions">
+                        <button class="btn button-edit" data-bs-toggle="modal" data-bs-target="#editPositionModal_@position.Id">Edit</button>
+                        @if (position.IsActive)
+                        {
+                            <form asp-action="TogglePositionStatus" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@position.Id" />
+                                <input type="hidden" name="isActive" value="false" />
+                                <button type="submit" class="btn archive-btn">Archive</button>
+                                @Html.AntiForgeryToken()
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="TogglePositionStatus" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@position.Id" />
+                                <input type="hidden" name="isActive" value="true" />
+                                <button type="submit" class="btn activate-btn">Activate</button>
+                                @Html.AntiForgeryToken()
+                            </form>
+                        }
+                    </div>
                 </div>
-               
+                <!-- Topics -->
                 <h5 class="mt-2">Topics:</h5>
                 @foreach (var pt in position.PositionTopics)
                 {
                     <div class="border p-2 mb-2 rounded">
                         <div class="header-wrapper">
                             <div class="topic-name">@pt.Topic.Name</div>
-                            <button class="btn text-decoration-none button-edit" data-bs-toggle="modal" data-bs-target="#editTopicModal_@pt.Topic.Id">Edit</button>
+                            <button class="btn button-edit" data-bs-toggle="modal" data-bs-target="#editTopicModal_@pt.Topic.Id">Edit Topic</button>
                         </div>
-                        
+
                         <ul>
                             @foreach (var q in pt.Topic.Questions)
                             {
@@ -49,18 +73,26 @@
                                     <div class="diff-wrapper">
                                         <div class="difficulty-badge @(q.Difficulty.ToString().ToLower())-badge"></div>
                                         <div><strong>@q.QuestionText</strong></div>
+                                        <form asp-action="DeleteQuestion" method="post" class="d-inline delete-question-form">
+                                            <input type="hidden" name="questionId" value="@q.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger button-delete-custom"
+                                                    onclick="return confirm('Are you sure you want to delete this question?')">
+                                                Delete
+                                            </button>
+                                            @Html.AntiForgeryToken()
+                                        </form>
                                     </div>
                                     <ul>
                                         @foreach (var a in q.Answers)
                                         {
-											if (a.IsCorrect)
-											{
+                                            if (a.IsCorrect)
+                                            {
                                                 <li><span class="attention-text"><strong>Correct A:</strong></span> @a.AnswerText</li>
-											}
-											else
-											{
-                                                <li><strong>A:</strong>@a.AnswerText</li>
-											}
+                                            }
+                                            else
+                                            {
+                                                <li><strong>A:</strong> @a.AnswerText</li>
+                                            }
                                         }
                                     </ul>
                                 </li>
@@ -157,6 +189,18 @@
                             <input class="form-control" name="Name" required />
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Assign to Position (Required)</label>
+                            <select class="form-select" name="PositionId" required>
+                                <option value="">-- Select a Position --</option>
+                                @foreach (var position in Model)
+                                {
+                                    <option value="@position.Id">@position.Name</option>
+                                }
+                            </select>
+                        </div>
+
+
                         <div id="questionContainer">
                             <div class="question-block border p-2 mb-2">
                                 <label>Question:</label>
@@ -182,8 +226,6 @@
                             </div>
                         </div>
 
-
-
                         <button type="button" class="btn btn-outline-secondary" onclick="addQuestion()">+ Add Question</button>
                     </div>
                     <div class="modal-footer">
@@ -194,14 +236,14 @@
             </div>
         </div>
     </div>
-    @* ---------------------------------------------------------------------------------------------------------------------- *@
+
     <!-- Edit Topic Modals -->
     @foreach (var topic in allTopics)
     {
         <div class="modal fade" id="editTopicModal_@topic.Id" tabindex="-1" aria-labelledby="editTopicLabel_@topic.Id" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-                    <form asp-action="EditTopic" method="post">
+                    <form asp-action="EditTopic" asp-controller="Position" method="post">
                         <div class="modal-header">
                             <h5 class="modal-title">Edit Topic - @topic.Name</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -212,36 +254,6 @@
                                 <label>Topic Name</label>
                                 <input class="form-control" name="Name" value="@topic.Name" required />
                             </div>
-                            @foreach (var question in topic.Questions)
-                            {
-                                <div class="question-block border p-2 mb-3">
-                                    <input type="hidden" name="Questions[@question.Id]" value="@question.QuestionText" />
-                                    <label>Question:</label>
-                                    <input class="form-control mb-2" name="Questions[@question.Id]" value="@question.QuestionText" />
-
-
-                                    <label>Answers:</label>
-                                    @foreach (var answer in question.Answers)
-                                    {
-                                        <div class="input-wrapper">
-                                            @if (@answer.IsCorrect)
-                                            {
-                                            <div><span class="attention-text"><strong>Correct:</strong></span></div>
-                                            }
-                                            <input class="form-control answer-text" name="Answers[@answer.Id]" value="@answer.AnswerText" />
-                                        </div>
-                                    }
-                                    <div class="delete-btn-wrapper">
-                                        <button type="button" class="delete-btn delete-question-btn" data-question-id="@question.Id">Delete question</button>
-                                    </div>
-                                    
-                                </div>
-                            }
-                            <form id="deleteQuestionForm" method="post" asp-action="DeleteQuestion" style="display:none;">
-                                <input type="hidden" id="questionIdToDelete" name="questionId" value="" />
-                                @Html.AntiForgeryToken()
-                            </form>
-                            <hr />
 
                             <h6>Add New Questions</h6>
                             <div id="newQuestionContainer_@topic.Id" class="new-question-container">
@@ -267,11 +279,7 @@
                                             <input class="form-control" name="NewAnswers[0][0]" placeholder="Enter answer" />
                                         </div>
                                     </div>
-                                    <button
-                                        type="button"
-                                        class="btn btn-sm btnbtn-outline-secondary mt-1"
-                                        onclick="addNewAnswer(@topic.Id, 0)"
-                                    >
+                                    <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addNewAnswer(@topic.Id, 0)">
                                         + Add Answer
                                     </button>
                                 </div>
@@ -292,14 +300,12 @@
             </div>
         </div>
     }
-    </div>
-
+</div>
 
 @section Scripts {
     <script>
-        // Function to add new question in the Create Topic modal
         let questionIndex = 0;
-
+        // Add Question
         function addQuestion() {
             questionIndex++;
             const container = document.getElementById("questionContainer");
@@ -329,7 +335,7 @@
             `;
             container.appendChild(block);
         }
-
+        // Add answer
         function addAnswer(questionId) {
             const container = document.getElementById(`answersContainer_${questionId}`);
             const answerIndex = container.children.length;
@@ -346,12 +352,12 @@
             container.appendChild(answerGroup);
         }
 
-        // Function to add new question in the Edit Topic modal
+        // Function to add new question
         const newQuestionCounters = {};
 
         function addNewQuestion(topicId) {
             if (!newQuestionCounters[topicId]) {
-                newQuestionCounters[topicId] = 0;
+                newQuestionCounters[topicId] = 1;
             } else {
                 newQuestionCounters[topicId]++;
             }
@@ -363,10 +369,10 @@
             block.className = "question-block border p-2 mb-2";
             block.innerHTML = `
                 <label>Question Text:</label>
-                <input class="form-control mb-2" name="Questions[${questionIdx}]" />
+                <input class="form-control mb-2" name="NewQuestions[${questionIdx}]" />
 
                 <label>Difficulty Level:</label>
-                <select class="form-select mb-2" name="Difficulty[${questionIdx}]">
+                <select class="form-select mb-2" name="NewDifficulty[${questionIdx}]">
                     <option value="0">Easy</option>
                     <option value="1">Medium</option>
                     <option value="2">Hard</option>
@@ -390,7 +396,7 @@
             container.appendChild(block);
         }
 
-        // Function to add new answer in the Edit Topic modal
+        // add new answer in Edit Topic modal
         function addNewAnswer(topicId, questionIdx) {
             const container = document.getElementById(`newAnswersContainer_${topicId}_${questionIdx}`);
             const answerIndex = container.children.length;
@@ -409,7 +415,7 @@
             container.appendChild(answerGroup);
         }
 
-        // Create topic modal event listener
+        // Reset create topic modal on close
         document.addEventListener('DOMContentLoaded', function() {
             if (document.getElementById("createTopicModal")) {
                 document.getElementById("createTopicModal").addEventListener("hidden.bs.modal", function () {
@@ -437,10 +443,16 @@
                         </div>
                     `;
                     questionIndex = 0;
+
+                    // Reset the position dropdown
+                    const positionSelect = document.querySelector('#createTopicModal select[name="PositionId"]');
+                    if (positionSelect) {
+                        positionSelect.selectedIndex = 0;
+                    }
                 });
             }
 
-            // Edit topic modal event listener
+            // Edit topic modal event listeners
             document.querySelectorAll('[id^="editTopicModal_"]').forEach(modal => {
                 const topicId = modal.id.split('_')[1];
                 modal.addEventListener('hidden.bs.modal', function() {
@@ -451,10 +463,10 @@
                         container.innerHTML = `
                             <div class="question-block border p-2 mb-2">
                                 <label>Question Text:</label>
-                                <input class="form-control mb-2" name="Questions[0]" />
+                                <input class="form-control mb-2" name="NewQuestions[0]" />
 
                                 <label>Difficulty Level:</label>
-                                <select class="form-select mb-2" name="Difficulty[0]">
+                                <select class="form-select mb-2" name="NewDifficulty[0]">
                                     <option value="0">Easy</option>
                                     <option value="1">Medium</option>
                                     <option value="2">Hard</option>
@@ -465,8 +477,8 @@
                                     <div class="input-group mb-1">
                                         <div class="input-group-text">
                                             <input type="checkbox" class="form-check-input answer-checkbox"
-                                                    data-topic="${topicId}" data-question="0"
-                                                    name="IsCorrect[0][0]" value="true" />
+                                                   data-topic="${topicId}" data-question="0"
+                                                   name="IsCorrect[0][0]" value="true" />
                                         </div>
                                         <input class="form-control" name="NewAnswers[0][0]" placeholder="Enter answer" />
                                     </div>
@@ -479,37 +491,8 @@
                 });
             });
 
-            // Add handler for the "Add Question" buttons
+            // Event listener for checkboxes
             document.body.addEventListener('click', function(event) {
-                if (event.target.classList.contains('add-question-btn')) {
-                    const topicId = event.target.getAttribute('data-topic-id');
-                    if (topicId) {
-                        addNewQuestion(topicId);
-                    }
-                }
-                // Add handler for the "Add Answer" buttons
-                if (event.target.classList.contains('add-answer-btn')) {
-                    const topicId = event.target.getAttribute('data-topic-id');
-                    const questionIdx = event.target.getAttribute('data-question-idx');
-                    const container = document.getElementById(`newAnswersContainer_${topicId}_${questionIdx}`);
-
-                    if (container) {
-                        const answerIndex = container.children.length;
-                        const newAnswer = document.createElement('div');
-                        newAnswer.className = 'input-group mb-1';
-                        newAnswer.innerHTML = `
-                            <div class="input-group-text">
-                                <input type="checkbox" class="form-check-input answer-checkbox"
-                                        data-topic="${topicId}" data-question="${questionIdx}"
-                                        name="IsCorrect[${questionIdx}][${answerIndex}]" value="true" />
-                            </div>
-                            <input class="form-control" name="NewAnswers[${questionIdx}][${answerIndex}]" placeholder="Enter answer" />
-                        `;
-                        container.appendChild(newAnswer);
-                    }
-                }
-
-                // Event listener for checkboxes
                 if (event.target.classList.contains('answer-checkbox')) {
                     const clickedCheckbox = event.target;
                     const questionIndex = clickedCheckbox.getAttribute('data-question');
@@ -532,18 +515,6 @@
                                 checkbox.checked = false;
                             }
                         });
-                    }
-                }
-            });
-
-            // Handle delete question button click
-            document.body.addEventListener('click', function(event) {
-                if (event.target.classList.contains('delete-question-btn')) {
-                    const questionId = event.target.getAttribute('data-question-id');
-
-                    if (confirm('Are you sure you want to delete this question?')) {
-                        document.getElementById('questionIdToDelete').value = questionId;
-                        document.getElementById('deleteQuestionForm').submit();
                     }
                 }
             });
