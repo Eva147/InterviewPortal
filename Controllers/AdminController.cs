@@ -19,51 +19,71 @@ public class AdminController : Controller
     [HttpGet]
     public async Task<IActionResult> Index(string search, string roleFilter, string sortOrder)
     {
+        // Get all roles for dropdown
+        var roles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
+        ViewData["Roles"] = roles;
+        ViewData["SortOrder"] = sortOrder;
+        ViewData["Search"] = search;
+        ViewData["RoleFilter"] = roleFilter;
+
         var usersQuery = _context.Users.AsQueryable();
+        usersQuery = ApplyFilters(usersQuery, search, roleFilter, sortOrder);
+        ViewData["Users"] = await usersQuery.Take(50).ToListAsync();
 
-        // Fetch roles
-        var userRoles = await _context.UserRoles.ToListAsync();
-        var roles = await _context.Roles.ToListAsync();
+        return View();
+    }
 
-        if (User.IsInRole("Admin") && roleFilter == "Owner")
+    [HttpGet]
+    public async Task<IActionResult> SearchUsers(string search, string roleFilter, string sortOrder)
+    {
+        var usersQuery = _context.Users.AsQueryable();
+        usersQuery = ApplyFilters(usersQuery, search, roleFilter, sortOrder);
+        var users = await usersQuery.ToListAsync();
+
+        var userList = new List<object>();
+
+        foreach (var user in users)
         {
-            roleFilter = ""; 
+            var roles = await _userManager.GetRolesAsync(user);
+
+            userList.Add(new
+            {
+                id = user.Id,
+                firstName = user.FirstName,
+                lastName = user.LastName,
+                email = user.Email,
+                roles = roles.ToList()
+            });
         }
 
-        // Filtering by Role
+        return Json(userList);
+    }
+
+    private IQueryable<User> ApplyFilters(IQueryable<User> query, string search, string roleFilter, string sortOrder)
+    {
+        // Filter by role
         if (!string.IsNullOrEmpty(roleFilter))
         {
-            var usersInRole = userRoles
-                .Where(ur => roles.Any(r => r.Id == ur.RoleId && r.Name == roleFilter))
-                .Select(ur => ur.UserId)
-                .ToList();
-
-            usersQuery = usersQuery.Where(u => usersInRole.Contains(u.Id));
+            var usersInRole = _userManager.GetUsersInRoleAsync(roleFilter).Result;
+            var userIds = usersInRole.Select(u => u.Id);
+            query = query.Where(u => userIds.Contains(u.Id));
         }
 
-        // Searching by Name
+        // Search by name
         if (!string.IsNullOrEmpty(search))
         {
-            usersQuery = usersQuery.Where(u => (u.FirstName + " " + u.LastName).Contains(search));
+            query = query.Where(u =>
+                u.FirstName.Contains(search) ||
+                u.LastName.Contains(search) ||
+                (u.FirstName + " " + u.LastName).Contains(search));
         }
 
         // Sorting
-        usersQuery = sortOrder switch
+        return sortOrder switch
         {
-            "name_desc" => usersQuery.OrderByDescending(u => u.FirstName).ThenByDescending(u => u.LastName),
-            _ => usersQuery.OrderBy(u => u.FirstName).ThenBy(u => u.LastName), 
+            "name_desc" => query.OrderByDescending(u => u.FirstName).ThenByDescending(u => u.LastName),
+            _ => query.OrderBy(u => u.FirstName).ThenBy(u => u.LastName)
         };
-
-        var users = await usersQuery.ToListAsync();
-
-        // Pass data to the View
-        ViewData["Users"] = users;
-        ViewData["Roles"] = roles.Select(r => r.Name).ToList();
-        ViewData["Search"] = search;
-        ViewData["RoleFilter"] = roleFilter;
-        ViewData["SortOrder"] = sortOrder;
-
-        return View();
     }
 
     // CREATE
@@ -87,7 +107,11 @@ public class AdminController : Controller
     public async Task<IActionResult> UpdateUser(string userId, string firstName, string lastName, string email)
     {
         var user = await _userManager.FindByIdAsync(userId);
-        var currentUser = await _userManager.GetUserAsync(User);  
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null)
+        {
+            return NotFound();
+        }
 
         if (user == null)
         {
@@ -148,8 +172,11 @@ public class AdminController : Controller
     [HttpPost]
     public async Task<IActionResult> AssignRole(string userId, string role)
     {
-        var currentUser = await _userManager.GetUserAsync(User); 
-
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null)
+        {
+            return NotFound();
+        }
         var currentUserRoles = await _userManager.GetRolesAsync(currentUser);
         if (!currentUserRoles.Contains("Admin"))
         {
