@@ -7,8 +7,6 @@ public class Question
     public int TopicId { get; set; }
     public Topic? Topic { get; set; }
 
-    // we don't need Answers in here, we decided to separate them
-
     public ICollection<Answer> Answers { get; set; } = [];
     public ICollection<UserAnswer>? UserAnswers { get; set; }
 }
