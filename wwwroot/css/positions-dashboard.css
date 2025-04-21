@@ -43,8 +43,37 @@
 
 .position-name-wrapper {
     display: flex;
-    gap: 20px;
-    justify-content: flex-start;
+    gap: 10px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.activate-btn,
+.archive-btn {
+    border: none;
+}
+
+.activate-btn {
+    color: var(--green-color);
+    margin: 0;
+}
+
+    .activate-btn:hover {
+        color: var(--green-shadow-color);
+    }
+
+.archive-btn {
+    color: var(--accent-color);
+    margin: 0;
+}
+
+    .archive-btn:hover {
+        color: var(--accent-shadow-color);
+    }
+
+.button-delete-custom {
+    color: black;
+    margin: 0;
 }
 
 .answer {
@@ -92,7 +121,7 @@
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    gap: 7px;
+    gap: 10px;
 }
 
 .difficulty-badge {
@@ -143,3 +172,16 @@ select[name^="Difficulty"]:focus-visible {
     .delete-btn:hover {
         background-color: #c82333;
     }
+
+.status {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.active {
+    color: var(--green-color);
+}
+
+.archived {
+    color: var(--accent-color);
+}

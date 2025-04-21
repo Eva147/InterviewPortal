@@ -17,7 +17,6 @@ public class PositionController : Controller
         try
         {
             var positions = await _context.Positions
-                .Where(p => p.IsActive)
                 .Include(p => p.PositionTopics)
                     .ThenInclude(pt => pt.Topic)
                         .ThenInclude(t => t.Questions)
@@ -88,14 +87,33 @@ public class PositionController : Controller
 
     [HttpPost]
     [Authorize(Roles = "HR,Admin")]
+    public async Task<IActionResult> TogglePositionStatus(int id, bool isActive)
+    {
+        var position = await _context.Positions.FindAsync(id);
+
+        if (position == null)
+        {
+            return NotFound();
+        }
+
+        position.IsActive = isActive;
+        await _context.SaveChangesAsync();
+
+        string statusMessage = isActive ? "activated" : "inactivated";
+        TempData["Message"] = $"Position '{position.Name}' has been {statusMessage} successfully.";
+
+        return RedirectToAction("Index");
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "HR,Admin")]
     public async Task<IActionResult> EditTopic(
-        int id,
-        string Name,
-        Dictionary<int, string> Questions,
-        Dictionary<int, string> Answers,
-        Dictionary<int, int> Difficulty,
-        Dictionary<int, Dictionary<int, string>> NewAnswers,
-        Dictionary<int, Dictionary<int, string>> IsCorrect)
+    int id,
+    string Name,
+    Dictionary<int, string> Questions,
+    Dictionary<int, int> Difficulty,
+    Dictionary<int, Dictionary<int, string>> NewAnswers,
+    Dictionary<int, Dictionary<int, string>> IsCorrect)
     {
         var topic = await _context.Topics
             .Include(t => t.Questions)
@@ -104,33 +122,17 @@ public class PositionController : Controller
 
         if (topic == null) return NotFound();
 
+        // Update topic name
         topic.Name = Name;
 
+        // Initialize dictionaries if null
         Questions = Questions ?? new Dictionary<int, string>();
-        Answers = Answers ?? new Dictionary<int, string>();
         Difficulty = Difficulty ?? new Dictionary<int, int>();
         NewAnswers = NewAnswers ?? new Dictionary<int, Dictionary<int, string>>();
         IsCorrect = IsCorrect ?? new Dictionary<int, Dictionary<int, string>>();
 
-        // Update existing questions and answers
-        foreach (var question in topic.Questions)
-        {
-            if (Questions.TryGetValue(question.Id, out var newText))
-            {
-                question.QuestionText = newText;
-            }
-
-            foreach (var answer in question.Answers)
-            {
-                if (Answers.TryGetValue(answer.Id, out var answerText))
-                {
-                    answer.AnswerText = answerText;
-                }
-            }
-        }
-
-        // Handle new questions
-        foreach (var questionEntry in NewAnswers ?? new Dictionary<int, Dictionary<int, string>>())
+        // Handle new questions (we only allow adding new questions in the simplified modal)
+        foreach (var questionEntry in NewAnswers)
         {
             int questionIdx = questionEntry.Key;
 
@@ -176,8 +178,8 @@ public class PositionController : Controller
                     }
                 }
 
-            // Add the new question to the topic
-            topic.Questions.Add(newQuestion);
+                // Add the new question to the topic
+                topic.Questions.Add(newQuestion);
             }
         }
 
@@ -219,11 +221,27 @@ public class PositionController : Controller
 
     [HttpPost]
     [Authorize(Roles = "HR,Admin")]
-    public async Task<IActionResult> CreateTopic(string Name, Dictionary<int, string> Questions, Dictionary<int, int> Difficulty, Dictionary<int, Dictionary<int, string>> Answers, Dictionary<int, Dictionary<int, string>> IsCorrect)
+    public async Task<IActionResult> CreateTopic(
+       string Name,
+       int PositionId,
+       Dictionary<int, string> Questions,
+       Dictionary<int, int> Difficulty,
+       Dictionary<int, Dictionary<int, string>> Answers,
+       Dictionary<int, Dictionary<int, string>> IsCorrect)
     {
         if (string.IsNullOrWhiteSpace(Name))
         {
             ModelState.AddModelError("", "Topic name is required.");
+            return RedirectToAction("Index");
+        }
+
+        var position = await _context.Positions
+            .Include(p => p.PositionTopics)
+            .FirstOrDefaultAsync(p => p.Id == PositionId);
+
+        if (position == null)
+        {
+            ModelState.AddModelError("", "Selected position does not exist.");
             return RedirectToAction("Index");
         }
 
@@ -274,10 +292,19 @@ public class PositionController : Controller
             newTopic.Questions.Add(newQuestion);
         }
 
+        // Add topic to database
         _context.Topics.Add(newTopic);
         await _context.SaveChangesAsync();
 
-        TempData["Message"] = "Topic created successfully!";
+        position.PositionTopics.Add(new PositionTopic
+        {
+            TopicId = newTopic.Id,
+            PositionId = position.Id
+        });
+
+        await _context.SaveChangesAsync();
+
+        TempData["Message"] = "Topic created successfully and assigned to position!";
         return RedirectToAction("Index");
     }
 }

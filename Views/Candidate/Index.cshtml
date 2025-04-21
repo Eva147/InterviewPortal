@@ -1,7 +1,7 @@
 ﻿@model List<InterviewPortal.Models.Position>
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/candidate-dashboard.css" />
+<link rel="stylesheet" href="~/css/candidate-dashboard.css" />
 }
 
 @{
@@ -16,9 +16,12 @@
         {
             @foreach (var position in Model)
             {
-                <a href="/Candidate/ApplyPosition/@position.Id" class="position-button">
-                    <div class="position-title">@position.Name</div>
-                </a>
+                if(position.IsActive)
+                {
+                    <a href="/Candidate/ApplyPosition/@position.Id" class="position-button">
+                        <div class="position-title">@position.Name</div>
+                    </a>
+                }
             }
         }
         else
