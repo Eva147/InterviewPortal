@@ -51,7 +51,7 @@ public class PositionController : Controller
     /// <param name="Topics"></param>
     /// <returns></returns>
     [HttpPost]
-    [Authorize(Roles = "HR,Admin")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreatePosition(string Name, List<int> Topics)
     {
         if (string.IsNullOrWhiteSpace(Name))
@@ -86,7 +86,7 @@ public class PositionController : Controller
     /// <param name="Topics"></param>
     /// <returns></returns>
     [HttpPost]
-    [Authorize(Roles = "HR,Admin")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> EditPosition(int id, string Name, List<int> Topics)
     {
         var position = await _context.Positions
@@ -113,6 +113,7 @@ public class PositionController : Controller
         TempData["Message"] = "Position updated successfully!";
         return RedirectToAction("Index");
     }
+
     /// <summary>
     /// Toggles the status of a position (active/inactive).
     /// </summary>
@@ -120,7 +121,7 @@ public class PositionController : Controller
     /// <param name="isActive"></param>
     /// <returns></returns>
     [HttpPost]
-    [Authorize(Roles = "HR,Admin")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> TogglePositionStatus(int id, bool isActive)
     {
         var position = await _context.Positions.FindAsync(id);
