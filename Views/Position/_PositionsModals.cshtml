@@ -19,7 +19,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Select Topics</label>
-                        @foreach (var topic in allTopics)
+                        @foreach (var topic in allTopics ?? Enumerable.Empty<Topic>())
                         {
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="Topics" value="@topic.Id" />
@@ -118,7 +118,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Topics</label>
-                            @foreach (var topic in allTopics)
+                            @foreach (var topic in allTopics ?? Enumerable.Empty<Topic>())
                             {
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="Topics" value="@topic.Id"
@@ -139,7 +139,7 @@
 }
 
 <!-- Edit Topic Modals -->
-@foreach (var topicItem in allTopics)
+@foreach (var topicItem in allTopics ?? Enumerable.Empty<Topic>())
 {
     <div class="modal fade" id="editTopicModal_@topicItem.Id" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
