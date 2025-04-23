@@ -65,6 +65,13 @@ public class InterviewPortalDbContext : IdentityDbContext<User>
             .HasOne(isession => isession.User)
             .WithMany(u => u.InterviewSessions)
             .HasForeignKey(isession => isession.UserId)
-            .OnDelete(DeleteBehavior.Restrict); 
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserAnswer>()
+    .HasOne(ua => ua.InterviewSession)
+    .WithMany(s => s.UserAnswers)
+    .HasForeignKey(ua => ua.InterviewSessionId)
+    .OnDelete(DeleteBehavior.Cascade); // 👈 This line enables cascade delete
+
     }
 }
