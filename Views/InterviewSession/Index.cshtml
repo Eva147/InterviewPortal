@@ -14,10 +14,6 @@
     <link rel="stylesheet" href="~/css/interview.css" />
 }
 
-<div class="session-source" style="background: @(fromSession ? "lightgreen" : "lightpink")">
-    Questions loaded: @(fromSession ? "FROM SESSION" : "FRESH RANDOMIZATION")
-</div>
-
 <div class="interview-type-container">
     <h2>Welcome to your Interview for the position of <strong>@Model.Position.Name</strong>!</h2>
     <p>Good luck!</p>
