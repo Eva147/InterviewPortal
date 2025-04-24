@@ -88,3 +88,11 @@ tr:hover {
     padding: 20px;
     color: #888;
 }
+
+.add-btn {
+    margin: 10px 0 10px;
+}
+
+    .add-btn:active {
+        border: none;
+    }

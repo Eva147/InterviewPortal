@@ -3,6 +3,11 @@
     var allTopics = ViewBag.AllTopics as List<InterviewPortal.Models.Topic>;
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/positions-dashboard.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+}
+
 <!-- Create Position Modal -->
 <div class="modal fade" id="createPositionModal" tabindex="-1" aria-labelledby="createPositionLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -156,7 +161,7 @@
                             <input class="form-control" name="Name" value="@topicItem.Name" required />
                         </div>
 
-                        <!-- Existing Questions (Now Editable) -->
+                        <!-- Existing Questions -->
                         <h6>Questions</h6>
                         <div id="existingQuestions_@topicItem.Id">
                             @{
@@ -165,10 +170,14 @@
                             @foreach (var question in topicItem.Questions)
                             {
                                 <div class="question-block border p-2 mb-2" data-question-id="@question.Id" data-question-index="@qIndex">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <input type="hidden" name="Questions[@qIndex].Id" value="@question.Id" />
-                                        <input class="form-control mb-2" name="Questions[@qIndex].QuestionText"
-                                               value="@question.QuestionText" placeholder="Question text" />
+                                    <div class="question-wrapper mb-2">
+                                        <div class="question-text-wrapper">
+                                            <input type="hidden" name="Questions[@qIndex].Id" value="@question.Id" />
+
+                                            <input class="form-control" name="Questions[@qIndex].QuestionText"
+                                                   value="@question.QuestionText" placeholder="Question text" />
+                                        </div>
+
                                         <select class="form-select ms-2" style="width:150px"
                                                 name="Questions[@qIndex].Difficulty">
                                             @foreach (QuestionDifficultyLevel level in Enum.GetValues(typeof(QuestionDifficultyLevel)))
@@ -179,10 +188,7 @@
                                                 </option>
                                             }
                                         </select>
-                                        <button type="button" class="btn btn-sm btn-outline-danger ms-2 delete-question"
-                                                data-question-id="@question.Id">
-                                            Delete
-                                        </button>
+                                        
                                     </div>
                                     <div class="answers-container">
                                         @{
@@ -195,21 +201,22 @@
                                             {
                                                 correctAnswerIndex = aIndex;
                                             }
-                                            <div class="input-group mb-2">
-                                                <div class="input-group-text">
+                                            <div class="input-group mb-2 answer-wrapper">
+                                                <div class="input-wrapper">
                                                     <input type="radio"
                                                            name="Questions[@qIndex].CorrectAnswerIndex"
                                                            value="@aIndex"
                                                            @(answer.IsCorrect ? "checked" : "")
-                                                           class="form-check-input" />
+                                                           class="form-check-input check" />
                                                 </div>
                                                 <input type="hidden" name="Questions[@qIndex].Answers[@aIndex].Id" value="@answer.Id" />
-                                                <input type="text" class="form-control"
+                                                <input type="text" class="form-control form-input"
                                                        name="Questions[@qIndex].Answers[@aIndex].AnswerText"
                                                        value="@answer.AnswerText" placeholder="Answer text" />
-                                                <button type="button" class="btn btn-outline-danger delete-answer"
-                                                        data-answer-id="@answer.Id">
-                                                    ×
+                                                <button type="button" class="delete-answer text-danger btn-icon-only"
+                                                        data-answer-id="@answer.Id"
+                                                >
+                                                    <i class="fa-solid fa-trash" style="font-size: 1rem; pointer-events: none;"></i>
                                                 </button>
                                             </div>
                                             aIndex++;

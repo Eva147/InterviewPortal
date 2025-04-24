@@ -6,6 +6,7 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/positions-dashboard.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 }
 
 @if (TempData["Message"] != null)
@@ -75,9 +76,9 @@
                                         <div><strong>@q.QuestionText</strong></div>
                                         <form asp-action="DeleteQuestion" asp-controller="Question" method="post" class="d-inline delete-question-form">
                                             <input type="hidden" name="questionId" value="@q.Id" />
-                                            <button type="submit" class="btn btn-sm btn-outline-danger button-delete-custom"
+                                            <button type="submit" class="text-danger btn-icon-only"
                                                     onclick="return confirm('Are you sure you want to delete this question?')">
-                                                Delete
+                                                <i class="fa-solid fa-trash" style="font-size: 1rem;"></i>
                                             </button>
                                             @Html.AntiForgeryToken()
                                         </form>
@@ -112,7 +113,7 @@
             let questionCounter = 0;
             let answerCounters = {};
 
-            // Handle adding a new question to create topic form
+            // Add new question to create topic form
             function addQuestion() {
                 questionCounter++;
                 const questionIndex = questionCounter;
@@ -170,7 +171,7 @@
                 document.getElementById(`answersContainer_${questionIndex}`).insertAdjacentHTML('beforeend', answerHTML);
             }
 
-            // Function to add a new question to an edit form
+            // Add a new question to an edit form
             function addNewQuestion(topicId) {
                 const container = document.getElementById(`newQuestionContainer_${topicId}`);
                 const questionIndex = document.querySelectorAll('.question-block').length;
@@ -208,37 +209,53 @@
                 container.insertAdjacentHTML('beforeend', questionHTML);
             }
 
-            // Function to add a new answer to an existing or new question in edit form
-            function addNewAnswer(questionIndex) {
-                const questionBlock = document.querySelector(`.question-block[data-question-index="${questionIndex}"]`) ||
-                                     document.querySelectorAll('.question-block')[questionIndex];
+            // Add a new answer to an existing or new question in edit form
+            function addNewAnswer(questionIndex, event) {
+                const clickedButton = event ? event.target.closest('.add-answer') : null;
 
-                if (!questionBlock) return;
+                // Find the question block
+                let questionBlock = clickedButton ? clickedButton.closest('.question-block') : null;
+
+                if (!questionBlock) {
+                    questionBlock = document.querySelector(`.question-block[data-question-index="${questionIndex}"]`) ||
+                                    document.querySelectorAll('.question-block')[questionIndex];
+                }
+
+                if (!questionBlock) {
+                    console.error("Question block not found for index:", questionIndex);
+                    return;
+                }
 
                 const answersContainer = questionBlock.querySelector('.answers-container');
-                const answerCount = answersContainer.querySelectorAll('.input-group').length;
+                if (!answersContainer) {
+                    console.error("Answers container not found in question block");
+                    return;
+                }
+
+                const answerCount = answersContainer.querySelectorAll('.answer-wrapper').length;
 
                 const answerHTML = `
-                    <div class="input-group mb-2">
-                        <div class="input-group-text">
+                    <div class="input-group mb-2 answer-wrapper">
+                        <div class="input-wrapper">
                             <input type="radio" name="Questions[${questionIndex}].CorrectAnswerIndex"
-                                   value="${answerCount}" class="form-check-input" />
+                                   value="${answerCount}" class="form-check-input check" />
                         </div>
                         <input type="hidden" name="Questions[${questionIndex}].Answers[${answerCount}].Id" value="0" />
-                        <input type="text" class="form-control" name="Questions[${questionIndex}].Answers[${answerCount}].AnswerText"
+                        <input type="text" class="form-control form-input" name="Questions[${questionIndex}].Answers[${answerCount}].AnswerText"
                                placeholder="Answer text" required />
-                        <button type="button" class="btn btn-outline-danger delete-answer">×</button>
+                        <button type="button" class="delete-answer text-danger btn-icon-only">
+                            <i class="fa-solid fa-trash" style="font-size: 1rem; pointer-events: none;"></i>
+                        </button>
                     </div>
                 `;
-
                 answersContainer.insertAdjacentHTML('beforeend', answerHTML);
             }
 
             document.addEventListener('click', function(e) {
                 // Delete an answer
                 if (e.target.classList.contains('delete-answer') || e.target.classList.contains('delete-edit-answer')) {
-                    const inputGroup = e.target.closest('.input-group');
-                    inputGroup.remove();
+                        const inputGroup = e.target.closest('.input-group');
+                        inputGroup.remove();
                 }
 
                 // Delete a question
@@ -252,13 +269,13 @@
                 // For existing questions in edit form
                 if (e.target.classList.contains('add-answer')) {
                     const questionIndex = e.target.getAttribute('data-question-index');
-                    addNewAnswer(questionIndex);
+                    addNewAnswer(questionIndex, e);
                 }
 
                 // For new questions in edit modal
                 if (e.target.classList.contains('add-new-answer')) {
                     const questionIndex = e.target.getAttribute('data-question-index');
-                    addNewAnswer(questionIndex);
+                    addNewAnswer(questionIndex, e);
                 }
             });
 
@@ -282,10 +299,10 @@
                 }
             });
 
-            // Initialize on page load
+            // Initialise on page load
             document.addEventListener('DOMContentLoaded', function() {
                 questionCounter = 0;
-                answerCounters = {0: 0};  // Initialize for the first question
+                answerCounters = {0: 0};  // Initialise for the first question
 
                 // Reset modal contents when hidden
                 const createTopicModal = document.getElementById('createTopicModal');
@@ -319,7 +336,7 @@
                                 // Set the value
                                 hiddenField.value = correctIndex;
 
-                                // Also set the IsCorrect property on each answer
+                                // set IsCorrect for each answer
                                 const answerInputs = questionBlock.querySelectorAll('.answers-container .input-group');
                                 answerInputs.forEach((answerInput, aIndex) => {
                                     // Create hidden field for IsCorrect
