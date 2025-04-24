@@ -74,10 +74,23 @@
 .button-delete-custom {
     color: black;
     margin: 0;
+    flex: 1;
 }
 
 .answer {
     color: red;
+}
+
+.input-wrapper {
+    padding: 5px;
+    margin: 0 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.check {
+    margin: 0 !important;
 }
 
 
@@ -184,4 +197,44 @@ select[name^="Difficulty"]:focus-visible {
 
 .archived {
     color: var(--accent-color);
+}
+
+.question-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.question-text-wrapper {
+    display: flex;
+    gap: 5px;
+    margin-bottom: .5rem;
+}
+
+.btn-icon-only {
+    margin-bottom: .5rem;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .btn-icon-only:hover {
+        opacity: 0.8;
+    }
+
+    .btn-icon-only:focus {
+        outline: none;
+    }
+
+.answer-wrapper {
+    display: flex;
+    gap: .5rem;
+}
+
+.form-input {
+    border-radius: 8px !important;
 }
