@@ -7,20 +7,25 @@
 
 @{
     var users = ViewData["Users"] as List<InterviewPortal.Models.User> ?? new List<InterviewPortal.Models.User>();
-
     var roles = ViewData["Roles"] as List<string> ?? new List<string>();
-
-    var search = ViewData["Search"] as string;
-    var roleFilter = ViewData["RoleFilter"] as string;
-    var sortOrder = ViewData["SortOrder"] as string;
+    var search = ViewData["Search"] as string ?? "";
+    var roleFilter = ViewData["RoleFilter"] as string ?? "";
+    var sortOrder = ViewData["SortOrder"] as string ?? "";
 
     var currentUser = await _userManager.GetUserAsync(User);
     var currentUserRoles = currentUser != null ? await _userManager.GetRolesAsync(currentUser) : new List<string>();
-
 }
 
 <div class="container">
     <h1>Users</h1>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
     <!-- Create Button -->
     <div class="mb-3">
@@ -30,144 +35,49 @@
     </div>
 
     <!-- Search & Filter -->
-    <form class="filter-form" asp-action="Index" method="get">
-        <input type="text" name="search" value="@search" placeholder="Search by name..." />
+    <div class="filter-form mb-3">
+        <input type="text" id="searchInput" value="@search" placeholder="Search by name or email..." />
 
-
-        <select name="roleFilter">
+        <select id="roleFilterSelect">
             <option value="">All Roles</option>
             @foreach (var role in roles)
             {
-                <option value="@role" selected="@(role == roleFilter ? "selected" : null)">@role</option>
-            }
-        </select>
-    </form>
-
-    <!-- User Table -->
-    <table class="table table-custom">
-        <thead>
-            <tr>
-                <th class="sortable-column">
-                    <a asp-action="Index" asp-route-sortOrder="@(sortOrder == "name_asc" ? "name_desc" : "name_asc")">
-                        Name @(sortOrder == "name_asc" ? "▲" : sortOrder == "name_desc" ? "▼" : "")
-                    </a>
-                </th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (users != null && users.Any())
-            {
-                foreach (var user in users)
+                if (role == roleFilter)
                 {
-                    var userRoles = await _userManager.GetRolesAsync(user);
-                    var roleName = userRoles.Any() ? string.Join(", ", userRoles) : "No Role";
-
-                    <tr>
-                        <td>@user.FirstName @user.LastName</td>
-                        <td>@user.Email</td>
-                        <td>
-                            <!-- Role Dropdown -->
-                            @if (!currentUserRoles.Contains("Admin") || !userRoles.Contains("Admin"))
-                            {
-                                <form asp-action="AssignRole" method="post">
-                                    <input type="hidden" name="userId" value="@user.Id" />
-                                    <select name="role" class="form-select form-select-sm w-auto d-inline" onchange="this.form.submit()">
-                                        @foreach (var role in roles)
-                                        {
-                                            if (role != "Admin" && role != "Owner")
-                                            {
-                                                <option value="@role" selected="@(userRoles.Contains(role) ? "selected" : null)">@role</option>
-                                            }
-                                        }
-                                    </select>
-                                </form>
-                            }
-                            else
-                            {
-                                <span>@roleName</span> 
-                            }
-                        </td>
-                        <td class="actions">
-                            <!-- Edit and Delete buttons -->
-                            @if (!currentUserRoles.Contains("Admin") || !userRoles.Contains("Admin"))
-                            {
-                                <a href="#editUserModal-@user.Id" class="text-primary me-3" data-bs-toggle="modal" title="Edit">
-                                    <i class="fa-regular fa-pen-to-square fa-lg icon-edit"></i>
-                                </a>
-                                <a href="#deleteUserModal-@user.Id" class="text-danger" data-bs-toggle="modal" title="Delete">
-                                    <i class="fa-solid fa-trash fa-lg icon-delete"></i>
-                                </a>
-                            }
-                            else
-                            {
-                                <span></span> 
-                            }
-                        </td>
-                    </tr>
+                    <option value="@role" selected>@role</option>
+                }
+                else
+                {
+                    <option value="@role">@role</option>
                 }
             }
-            else
-            {
+        </select>
+    </div>
+
+    <!-- User Table -->
+    <div class="table-responsive">
+        <table class="table table-custom">
+            <thead>
                 <tr>
-                    <td colspan="4" class="no-results">No users found.</td>
+                    <th class="sortable-column">
+                        <a href="javascript:void(0)" id="sortByName">
+                            Name @(sortOrder == "name_asc" ? "▲" : sortOrder == "name_desc" ? "▼" : "")
+                        </a>
+                    </th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody id="usersTableBody">
+                @await Html.PartialAsync("_UsersTablePartial", users)
+            </tbody>
+        </table>
+        <div id="noResultsMessage" class="no-results @(users.Any() ? "d-none" : "")">
+            No users found.
+        </div>
+    </div>
 </div>
-
-<!-- All User Modals -->
-@foreach (var user in users ?? new List<InterviewPortal.Models.User>())
-{
-    <!-- Update User Modal -->
-    <div class="modal fade" id="editUserModal-@user.Id" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form asp-action="UpdateUser" method="post">
-                    <input type="hidden" name="userId" value="@user.Id" />
-                    <div class="modal-header">
-                        <h5 class="modal-title">Edit User</h5>
-                        <a class="btn-close" data-bs-dismiss="modal"></a>
-                    </div>
-                    <div class="modal-body">
-                        <input type="text" name="firstName" class="form-control mb-2" value="@user.FirstName" required />
-                        <input type="text" name="lastName" class="form-control mb-2" value="@user.LastName" required />
-                        <input type="email" name="email" class="form-control" value="@user.Email" required />
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-warning">Update</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete Confirmation User Modal -->
-    <div class="modal fade" id="deleteUserModal-@user.Id" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form asp-action="DeleteUser" method="post">
-                    <input type="hidden" name="userId" value="@user.Id" />
-                    <div class="modal-header">
-                        <h5 class="modal-title text-danger">Confirm Delete</h5>
-                        <a class="btn-close" data-bs-dismiss="modal"></a>
-                    </div>
-                    <div class="modal-body">
-                        Are you sure you want to delete <strong>@user.FirstName @user.LastName</strong>?
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-}
 
 <!-- Create User Modal -->
 <div class="modal fade" id="createUserModal" tabindex="-1" aria-hidden="true">
@@ -176,16 +86,28 @@
             <form asp-action="CreateUser" method="post">
                 <div class="modal-header">
                     <h5 class="modal-title">Create New User</h5>
-                    <a class="btn-close" data-bs-dismiss="modal"></a>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="text" name="firstName" class="form-control mb-2" placeholder="First Name" required />
-                    <input type="text" name="lastName" class="form-control mb-2" placeholder="Last Name" required />
-                    <input type="email" name="email" class="form-control mb-2" placeholder="Email" required />
-                    <input type="password" name="password" class="form-control" placeholder="Password" required />
+                    <div class="mb-3">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="firstName" class="form-control" placeholder="First Name" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" name="lastName" class="form-control" placeholder="Last Name" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="Email" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="Password" required />
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Create</button>
                 </div>
             </form>
@@ -193,50 +115,105 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const form = document.querySelector(".filter-form");
-        const searchInput = form.querySelector("input[name='search']");
-        const roleSelect = form.querySelector("select[name='roleFilter']");
-        const tableBody = document.querySelector("table tbody");
+<!-- User Modals will be dynamically loaded here -->
+<div id="userModalsContainer">
+    @foreach (var user in users)
+    {
+        <partial name="_UserModalsPartial" model="user" />
+    }
+</div>
 
-        form.addEventListener("submit", function (e) {
-            e.preventDefault();
-        });
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const searchInput = document.getElementById("searchInput");
+            const roleSelect = document.getElementById("roleFilterSelect");
+            const sortNameBtn = document.getElementById("sortByName");
+            const tableBody = document.getElementById("usersTableBody");
+            const noResultsMessage = document.getElementById("noResultsMessage");
+            const userModalsContainer = document.getElementById("userModalsContainer");
 
-        async function fetchAndRenderUsers() {
-            const search = searchInput.value;
-            const roleFilter = roleSelect.value;
+            let currentSortOrder = "@sortOrder" || "name_asc";
 
-            const response = await fetch(`/Admin/SearchUsers?search=${encodeURIComponent(search)}&roleFilter=${encodeURIComponent(roleFilter)}`);
-            const users = await response.json();
+            // Client-side filtering
+            function filterUsers() {
+                let visibleCount = 0;
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                const roleFilter = roleSelect.value.toLowerCase();
+                const rows = Array.from(tableBody.querySelectorAll('tr'));
 
-            tableBody.innerHTML = "";
+                rows.forEach(row => {
+                    const name = row.cells[0].textContent.toLowerCase();
+                    const email = row.cells[1].textContent.toLowerCase();
+                    const roles = row.cells[2].textContent.toLowerCase();
 
-            if (users.length === 0) {
-                tableBody.innerHTML = "<tr><td colspan='4'>No users found.</td></tr>";
-                return;
+                    const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+                    const matchesRole = !roleFilter || roles.includes(roleFilter);
+
+                    const isVisible = matchesSearch && matchesRole;
+                    row.classList.toggle('d-none', !isVisible);
+
+                    if (isVisible) visibleCount++;
+                });
+
+                // Show/hide "No users found" message
+                noResultsMessage.classList.toggle('d-none', visibleCount > 0);
             }
 
-            users.forEach(user => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${user.firstName} ${user.lastName}</td>
-                    <td>${user.email}</td>
-                    <td>${user.roles.join(", ")}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" disabled>Edit</button>
-                        <button class="btn btn-sm btn-danger" disabled>Delete</button>
-                    </td>
-                `;
-                tableBody.appendChild(tr);
+            // Server-side filtering
+            async function loadFilteredUsers() {
+                const searchTerm = searchInput.value.trim();
+                const roleFilter = roleSelect.value;
+
+                try {
+                    const response = await fetch(`/Admin/Index?search=${encodeURIComponent(searchTerm)}&roleFilter=${encodeURIComponent(roleFilter)}&sortOrder=${currentSortOrder}`);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const html = await response.text();
+
+                    // Extract the table body content from the response
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newTableBody = doc.querySelector('#usersTableBody');
+                    const newModals = doc.querySelector('#userModalsContainer');
+
+                    if (newTableBody) {
+                        tableBody.innerHTML = newTableBody.innerHTML;
+                    }
+
+                    if (newModals) {
+                        userModalsContainer.innerHTML = newModals.innerHTML;
+                    }
+
+                    // Update "No results" message
+                    const userRows = tableBody.querySelectorAll('tr');
+                    noResultsMessage.classList.toggle('d-none', userRows.length > 0);
+
+                } catch (error) {
+                    console.error('Error fetching filtered users:', error);
+                }
+            }
+
+            // Debounce function
+            function debounce(func, delay) {
+                let timer;
+                return function() {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => func.apply(this, arguments), delay);
+                };
+            }
+
+            // Toggle sort order and reload
+            sortNameBtn.addEventListener('click', function() {
+                currentSortOrder = currentSortOrder === "name_asc" ? "name_desc" : "name_asc";
+                loadFilteredUsers();
             });
-        }
 
-        searchInput.addEventListener("input", fetchAndRenderUsers);
-        roleSelect.addEventListener("change", fetchAndRenderUsers);
+            // Use client-side filtering for faster response
+            searchInput.addEventListener('input', debounce(loadFilteredUsers, 300));
+            roleSelect.addEventListener('change', loadFilteredUsers);
 
-        fetchAndRenderUsers(); 
-    });
-</script>
-
+            // Initialize
+            filterUsers();
+        });
+    </script>
+}

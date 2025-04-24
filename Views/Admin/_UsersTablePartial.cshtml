@@ -1,0 +1,55 @@
+@model List<InterviewPortal.Models.User>
+@inject UserManager<InterviewPortal.Models.User> _userManager
+
+@{
+    var currentUser = await _userManager.GetUserAsync(User);
+}
+<!-- User Table -->
+@foreach (var user in Model)
+{
+    var userRoles = await _userManager.GetRolesAsync(user);
+    var roleName = userRoles.Any() ? string.Join(", ", userRoles) : "No Role";
+    var isCurrentUser = user.Id == currentUser?.Id;
+    var isAdmin = userRoles.Contains("Admin");
+
+    <tr>
+        <td>@user.FirstName @user.LastName</td>
+        <td>@user.Email</td>
+        <td>
+            @if (isCurrentUser || isAdmin)
+            {
+                <p class="mb-0">@roleName</p>
+            }
+            else
+            {
+                <form asp-action="AssignRole" method="post" class="d-flex align-items-center">
+                    <input type="hidden" name="userId" value="@user.Id" />
+                    <select name="role" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                        @foreach (var role in new[] { "HR", "Candidate" })
+                        {
+                            if (userRoles.Contains(role))
+                            {
+                                <option value="@role" selected>@role</option>
+                            }
+                            else
+                            {
+                                <option value="@role">@role</option>
+                            }
+                        }
+                    </select>
+                </form>
+            }
+        </td>
+        <td class="actions">
+            @if (!isAdmin)
+            {
+                <a href="#editUserModal-@user.Id" class="text-primary me-3" data-bs-toggle="modal" title="Edit">
+                    <i class="fa-regular fa-pen-to-square fa-lg icon-edit"></i>
+                </a>
+                <a href="#deleteUserModal-@user.Id" class="text-danger" data-bs-toggle="modal" title="Delete">
+                    <i class="fa-solid fa-trash fa-lg icon-delete"></i>
+                </a>
+            }
+        </td>
+    </tr>
+}

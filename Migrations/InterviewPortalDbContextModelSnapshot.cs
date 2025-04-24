@@ -71,7 +71,7 @@ namespace InterviewPortal.Migrations
                     b.Property<DateTime>("StartedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("TopicId")
+                    b.Property<int?>("TopicId")
                         .HasColumnType("int");
 
                     b.Property<string>("UserId")
@@ -96,6 +96,9 @@ namespace InterviewPortal.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -285,6 +288,9 @@ namespace InterviewPortal.Migrations
                     b.Property<int>("AnswerId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("AnsweredAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("InterviewSessionId")
                         .HasColumnType("int");
 
@@ -462,14 +468,12 @@ namespace InterviewPortal.Migrations
 
                     b.HasOne("InterviewPortal.Models.Topic", "Topic")
                         .WithMany()
-                        .HasForeignKey("TopicId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("TopicId");
 
                     b.HasOne("InterviewPortal.Models.User", "User")
                         .WithMany("InterviewSessions")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Position");
@@ -490,7 +494,7 @@ namespace InterviewPortal.Migrations
                     b.HasOne("InterviewPortal.Models.Topic", "Topic")
                         .WithMany("PositionTopics")
                         .HasForeignKey("TopicId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Position");
@@ -503,7 +507,7 @@ namespace InterviewPortal.Migrations
                     b.HasOne("InterviewPortal.Models.Topic", "Topic")
                         .WithMany("Questions")
                         .HasForeignKey("TopicId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Topic");
@@ -536,9 +540,10 @@ namespace InterviewPortal.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("InterviewPortal.Models.InterviewSession", null)
+                    b.HasOne("InterviewPortal.Models.InterviewSession", "InterviewSession")
                         .WithMany("UserAnswers")
-                        .HasForeignKey("InterviewSessionId");
+                        .HasForeignKey("InterviewSessionId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("InterviewPortal.Models.Question", "Question")
                         .WithMany("UserAnswers")
@@ -553,6 +558,8 @@ namespace InterviewPortal.Migrations
                         .IsRequired();
 
                     b.Navigation("Answer");
+
+                    b.Navigation("InterviewSession");
 
                     b.Navigation("Question");
 

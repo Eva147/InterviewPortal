@@ -16,3 +16,4 @@ global using System.ComponentModel.DataAnnotations;
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using System.Security.Claims;
 global using Newtonsoft.Json;
+global using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
