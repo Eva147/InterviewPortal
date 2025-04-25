@@ -1,7 +1,7 @@
 ﻿@model InterviewPortal.Models.InterviewSession
 @{
     ViewData["Title"] = Model.IsMock ? "Mock Interview Results" : "Interview Submitted";
-    bool showCorrectAnswers = Model.IsMock; // Simplified this line
+    bool showCorrectAnswers = Model.IsMock;
     int correctAnswers = ViewData["CorrectAnswers"] as int? ?? 0;
     int totalQuestions = ViewData["TotalQuestions"] as int? ?? 0;
 }
