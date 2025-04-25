@@ -1,5 +1,5 @@
 ﻿@section Styles {
-	<link rel="stylesheet" href="~/css/index.css" />
+<link rel="stylesheet" href="~/css/index.css" />
 }
 
 @{
@@ -29,7 +29,14 @@
                 <li>Walk into your real interview with complete platform confidence</li>
             </ul>
             <div class="button-wrapper">
-                <a href="/Identity/Account/Login" class="btn mt-3 button">Go to Mock Interview</a>
+                @if (User.IsInRole("HR") || User.IsInRole("Admin") || User.IsInRole("Candidate"))
+                {
+                    <a href="/Candidate" class="btn mt-3 button">Go to Mock Interview</a>
+                }
+                else
+                {
+                    <a href="/Identity/Account/Login" class="btn mt-3 button">Go to Mock Interview</a>
+                }
             </div>
         </div>
     </div>
@@ -47,7 +54,14 @@
                 <li>Benefit from expert analysis that identifies your strengths and growth opportunities</li>
             </ul>
             <div class="button-wrapper">
-                <a href="/Identity/Account/Login" class="btn mt-3 button">Take Accessment</a>
+                @if (User.IsInRole("HR") || User.IsInRole("Admin") || User.IsInRole("Candidate"))
+                {
+                    <a href="/Candidate" class="btn mt-3 button">Take Accessment</a>
+                }
+                else
+                {
+                    <a href="/Identity/Account/Login" class="btn mt-3 button">Take Accessment</a>
+                }
             </div>
         </div>
     </div>
@@ -70,7 +84,14 @@
                 <li>Streamline your entire hiring workflow while maintaining complete control</li>
             </ul>
             <div class="button-wrapper">
-                <a href="/Identity/Account/Login" class="btn mt-3 button">Login</a>
+                @if (User.IsInRole("HR") || User.IsInRole("Admin"))
+                {
+                    <a href="/Position" class="btn mt-3 button">Go to Dashboard</a>
+                }
+                else
+                {
+                    <a href="/Identity/Account/Login" class="btn mt-3 button">Go to Dashboard</a>
+                }
             </div>
         </div>
     </div>
